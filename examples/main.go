@@ -12,27 +12,26 @@ var eventbus = goeventbus.NewEventBus()
 
 func main() {
 
-	ch1 := make(chan goeventbus.DataEvent)
-	ch2 := make(chan goeventbus.DataEvent)
-	ch3 := make(chan goeventbus.DataEvent)
-
-	eventbus.Subscribe("topic1", ch1)
-	eventbus.Subscribe("topic2", ch2)
-	eventbus.Subscribe("topic2", ch3)
+	eventbus.Subscribe("topic1")
+	eventbus.Subscribe("topic2")
+	eventbus.Subscribe("topic3")
 
 	go publishTo("topic1", "Hi topic 1")
 	go publishTo("topic2", "Welcome to topic 2")
+	go publishTo("topic3", "Welcome to topic 3")
 
-	for {
-		select {
-		case d := <-ch1:
-			go printDataEvent("ch1", d)
-		case d := <-ch2:
-			go printDataEvent("ch2", d)
-		case d := <-ch3:
-			go printDataEvent("ch3", d)
-		}
-	}
+	eventbus.On("topic1", func(data goeventbus.DataEvent) {
+		printDataEvent(data)
+	})
+
+	eventbus.On("topic2", func(data goeventbus.DataEvent) {
+		printDataEvent(data)
+	})
+
+	eventbus.On("topic3", func(data goeventbus.DataEvent) {
+		printDataEvent(data)
+	})
+
 }
 
 func publishTo(address string, data string) {
@@ -42,6 +41,6 @@ func publishTo(address string, data string) {
 	}
 }
 
-func printDataEvent(ch string, data goeventbus.DataEvent) {
-	fmt.Printf("Channel: %s; Address: %s; DataEvent %v\n", ch, data.Address, data.Data)
+func printDataEvent(data goeventbus.DataEvent) {
+	fmt.Printf("Address: %s; DataEvent %v\n", data.Address, data.Data)
 }

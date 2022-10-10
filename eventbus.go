@@ -5,7 +5,7 @@ import (
 )
 
 type DataEvent struct {
-	Data    interface{} // we have defined underlying data to be an interface which means it can be any value
+	Data    interface{}
 	Address string
 }
 
@@ -14,42 +14,47 @@ type DataChannel chan DataEvent
 type DataChannelSlice []DataChannel
 
 type EventBus interface {
-	Subscribe(address string, ch DataChannel) // find method for don't use ch inside
+	Subscribe(address string)
 	Publish(address string, data interface{})
+	On(address string, handle func(data DataEvent))
 }
 
 type DefaultEventBus struct {
-	subscribers map[string]DataChannelSlice
+	subscribers map[string]DataChannel
 	rm          sync.RWMutex
 }
 
-func (e *DefaultEventBus) Subscribe(address string, ch DataChannel) {
+func (e *DefaultEventBus) Subscribe(address string) {
 	e.rm.Lock()
-	if prev, found := e.subscribers[address]; found {
-		e.subscribers[address] = append(prev, ch)
-	} else {
-		e.subscribers[address] = append([]DataChannel{}, ch)
-	}
+
+	ch := make(chan DataEvent)
+	e.subscribers[address] = ch
+
 	e.rm.Unlock()
 }
 
 func (e *DefaultEventBus) Publish(address string, data interface{}) {
 	e.rm.Lock()
 
-	if chans, found := e.subscribers[address]; found {
-		channels := append(DataChannelSlice{}, chans...)
+	found := e.subscribers[address]
 
-		go func(data DataEvent, slices DataChannelSlice) {
-			for _, ch := range slices {
-				ch <- data
-			}
-		}(DataEvent{Data: data, Address: address}, channels)
-	}
+	go func(data DataEvent, ch DataChannel) {
+		ch <- data
+	}(DataEvent{Data: data, Address: address}, found)
+
 	e.rm.Unlock()
+}
+
+func (e *DefaultEventBus) On(address string, handle func(data DataEvent)) {
+	for {
+		d := <-e.subscribers[address]
+		println(d.Address)
+		handle(d)
+	}
 }
 
 func NewEventBus() EventBus {
 	return &DefaultEventBus{
-		subscribers: map[string]DataChannelSlice{},
+		subscribers: map[string]DataChannel{},
 	}
 }
