@@ -1,7 +1,6 @@
 package goeventbus
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -12,7 +11,10 @@ type DataEvent struct {
 
 type DataChannel chan DataEvent
 
-type DataChannelSlice []DataChannel
+type Channel struct {
+	Ch       chan DataEvent
+	Consumer func(data DataEvent)
+}
 
 type EventBus interface {
 	Subscribe(address string)
@@ -22,7 +24,7 @@ type EventBus interface {
 }
 
 type DefaultEventBus struct {
-	subscribers map[string]DataChannel
+	subscribers map[string]Channel
 	rm          sync.RWMutex
 }
 
@@ -30,7 +32,7 @@ func (e *DefaultEventBus) Subscribe(address string) {
 	e.rm.Lock()
 
 	ch := make(chan DataEvent)
-	e.subscribers[address] = ch
+	e.subscribers[address] = Channel{Ch: ch, Consumer: func(data DataEvent) { println("consumer not started") }}
 
 	e.rm.Unlock()
 }
@@ -39,27 +41,34 @@ func (e *DefaultEventBus) Publish(address string, data interface{}) {
 	e.rm.Lock()
 
 	found := e.subscribers[address]
-
-	go func(data DataEvent, ch DataChannel) {
-		ch <- data
+	go func(data DataEvent, ch Channel) {
+		ch.Ch <- data
 	}(DataEvent{Data: data, Address: address}, found)
 
 	e.rm.Unlock()
 }
 
+func (e *DefaultEventBus) receiveData() {
+	for address, ch := range e.subscribers {
+		println(address)
+		d := <-ch.Ch
+		ch.Consumer(d)
+	}
+}
+
 func (e *DefaultEventBus) On(address string, handle func(data DataEvent)) {
 	ch := e.subscribers[address]
-	for d := range ch {
-		fmt.Println(d.Address)
-		handle(d)
-	}
+
+	e.subscribers[address] = Channel{Ch: ch.Ch, Consumer: handle}
+
+	e.receiveData()
 }
 
 func (e *DefaultEventBus) Unsubscribe(address string) {
 	e.rm.Lock()
 
 	ch := e.subscribers[address]
-	close(ch)
+	close(ch.Ch)
 	delete(e.subscribers, address)
 
 	e.rm.Unlock()
@@ -67,6 +76,6 @@ func (e *DefaultEventBus) Unsubscribe(address string) {
 
 func NewEventBus() EventBus {
 	return &DefaultEventBus{
-		subscribers: map[string]DataChannel{},
+		subscribers: map[string]Channel{},
 	}
 }
