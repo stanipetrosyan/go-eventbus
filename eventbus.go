@@ -1,6 +1,7 @@
 package goeventbus
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -17,6 +18,7 @@ type EventBus interface {
 	Subscribe(address string)
 	Publish(address string, data interface{})
 	On(address string, handle func(data DataEvent))
+	Unsubscribe(address string)
 }
 
 type DefaultEventBus struct {
@@ -46,11 +48,21 @@ func (e *DefaultEventBus) Publish(address string, data interface{}) {
 }
 
 func (e *DefaultEventBus) On(address string, handle func(data DataEvent)) {
-	for {
-		d := <-e.subscribers[address]
-		println(d.Address)
+	ch := e.subscribers[address]
+	for d := range ch {
+		fmt.Println(d.Address)
 		handle(d)
 	}
+}
+
+func (e *DefaultEventBus) Unsubscribe(address string) {
+	e.rm.Lock()
+
+	ch := e.subscribers[address]
+	close(ch)
+	delete(e.subscribers, address)
+
+	e.rm.Unlock()
 }
 
 func NewEventBus() EventBus {
