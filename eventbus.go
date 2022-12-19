@@ -1,7 +1,6 @@
 package goeventbus
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -53,12 +52,10 @@ func (e *DefaultEventBus) consume() {
 	var wg sync.WaitGroup
 	wg.Add(len(e.subscribers))
 
-	for address, ch := range e.subscribers {
-		println(address)
+	for _, ch := range e.subscribers {
 
 		go func(ch Channel) {
 			for d := range ch.Ch {
-				fmt.Printf("%s\n", d.Data)
 				ch.Consumer(d)
 			}
 		}(ch)
@@ -78,7 +75,6 @@ func (e *DefaultEventBus) On(address string, handle func(data DataEvent)) {
 func (e *DefaultEventBus) Unsubscribe(address string) {
 	e.rm.Lock()
 
-	println("removed address")
 	ch := e.subscribers[address]
 	close(ch.Ch)
 	delete(e.subscribers, address)

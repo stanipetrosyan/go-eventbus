@@ -17,6 +17,7 @@ func main() {
 	go func() {
 		time.Sleep(10 * time.Second)
 		eventbus.Unsubscribe("topic1")
+		println("Unsubscribed topic1 handler")
 		wg.Done()
 	}()
 
@@ -24,14 +25,11 @@ func main() {
 	eventbus.Subscribe("topic2")
 	eventbus.Subscribe("topic3")
 
-	go publishTo("topic1", "Hi topic 1")
-	go publishTo("topic2", "Hi topic 2")
-
-	eventbus.On("topic2", func(data goeventbus.DataEvent) {
+	eventbus.On("topic1", func(data goeventbus.DataEvent) {
 		printDataEvent(data)
 	})
 
-	eventbus.On("topic1", func(data goeventbus.DataEvent) {
+	eventbus.On("topic2", func(data goeventbus.DataEvent) {
 		printDataEvent(data)
 	})
 
@@ -39,13 +37,15 @@ func main() {
 		printDataEvent(data)
 	})
 
-	wg.Wait()
+	go publishTo("topic1", "Hi topic 1")
+	go publishTo("topic2", "Hi topic 2")
+	go publishTo("topic3", "Hi topic 3")
 
+	wg.Wait()
 }
 
 func publishTo(address string, data string) {
 	for {
-		println("invio")
 		eventbus.Publish(address, data)
 		time.Sleep(time.Second)
 	}
