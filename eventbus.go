@@ -53,10 +53,15 @@ func (e *DefaultEventBus) consume() {
 	wg.Add(len(e.subscribers))
 
 	for _, ch := range e.subscribers {
-
 		go func(ch Channel) {
-			for d := range ch.Ch {
-				ch.Consumer(d)
+			for {
+				data, ok := <-ch.Ch
+
+				if !ok {
+					wg.Done()
+					return
+				}
+				ch.Consumer(data)
 			}
 		}(ch)
 	}
