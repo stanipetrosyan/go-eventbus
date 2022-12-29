@@ -4,22 +4,21 @@ import (
 	"sync"
 )
 
-type DataEvent struct {
-	Data    interface{}
-	Address string
+type Message struct {
+	Data interface{}
 }
 
-type DataChannel chan DataEvent
+type DataChannel chan Message
 
 type Channel struct {
-	Ch       chan DataEvent
-	Consumer func(data DataEvent)
+	Ch       chan Message
+	Consumer func(data Message)
 }
 
 type EventBus interface {
 	Subscribe(address string)
 	Publish(address string, data interface{})
-	On(address string, handle func(data DataEvent))
+	On(address string, handle func(data Message))
 	Unsubscribe(address string)
 }
 
@@ -31,8 +30,8 @@ type DefaultEventBus struct {
 func (e *DefaultEventBus) Subscribe(address string) {
 	e.rm.Lock()
 
-	ch := make(chan DataEvent)
-	e.subscribers[address] = Channel{Ch: ch, Consumer: func(data DataEvent) { println("consumer not started") }}
+	ch := make(chan Message)
+	e.subscribers[address] = Channel{Ch: ch, Consumer: func(data Message) { println("consumer not started") }}
 
 	e.rm.Unlock()
 }
@@ -41,17 +40,18 @@ func (e *DefaultEventBus) Publish(address string, data interface{}) {
 	e.rm.Lock()
 
 	found := e.subscribers[address]
-	go func(data DataEvent, ch Channel) {
+	go func(data Message, ch Channel) {
 		ch.Ch <- data
-	}(DataEvent{Data: data, Address: address}, found)
+	}(Message{Data: data}, found)
 
 	e.rm.Unlock()
 }
 
-func (e *DefaultEventBus) consume() {
+func (e *DefaultEventBus) consume(address string) {
 	var wg sync.WaitGroup
 	wg.Add(len(e.subscribers))
 
+	// for use address here, wg should be a top level declaretion
 	for _, ch := range e.subscribers {
 		go func(ch Channel) {
 			for {
@@ -69,12 +69,12 @@ func (e *DefaultEventBus) consume() {
 
 }
 
-func (e *DefaultEventBus) On(address string, handle func(data DataEvent)) {
+func (e *DefaultEventBus) On(address string, handle func(data Message)) {
 	ch := e.subscribers[address]
 
 	e.subscribers[address] = Channel{Ch: ch.Ch, Consumer: handle}
 
-	go e.consume()
+	go e.consume(address)
 }
 
 func (e *DefaultEventBus) Unsubscribe(address string) {

@@ -25,16 +25,16 @@ func main() {
 	eventbus.Subscribe("topic2")
 	eventbus.Subscribe("topic3")
 
-	eventbus.On("topic1", func(data goeventbus.DataEvent) {
-		printDataEvent(data)
+	eventbus.On("topic1", func(data goeventbus.Message) {
+		printMessage(data)
 	})
 
-	eventbus.On("topic2", func(data goeventbus.DataEvent) {
-		printDataEvent(data)
+	eventbus.On("topic2", func(data goeventbus.Message) {
+		printMessage(data)
 	})
 
-	eventbus.On("topic3", func(data goeventbus.DataEvent) {
-		printDataEvent(data)
+	eventbus.On("topic3", func(data goeventbus.Message) {
+		printMessage(data)
 	})
 
 	go publishTo("topic1", "Hi topic 1")
@@ -51,6 +51,6 @@ func publishTo(address string, data string) {
 	}
 }
 
-func printDataEvent(data goeventbus.DataEvent) {
-	fmt.Printf("Address: %s; DataEvent %v\n", data.Address, data.Data)
+func printMessage(data goeventbus.Message) {
+	fmt.Printf("Message %v\n", data.Data)
 }
