@@ -8,8 +8,6 @@ type Message struct {
 	Data interface{}
 }
 
-type DataChannel chan Message
-
 type Channel struct {
 	Ch       chan Message
 	Consumer func(data Message)
@@ -25,6 +23,7 @@ type EventBus interface {
 type DefaultEventBus struct {
 	subscribers map[string]Channel
 	rm          sync.RWMutex
+	wg          sync.WaitGroup
 }
 
 func (e *DefaultEventBus) Subscribe(address string) {
@@ -48,25 +47,23 @@ func (e *DefaultEventBus) Publish(address string, data interface{}) {
 }
 
 func (e *DefaultEventBus) consume(address string) {
-	var wg sync.WaitGroup
-	wg.Add(len(e.subscribers))
+	e.wg.Add(1)
 
-	// for use address here, wg should be a top level declaretion
-	for _, ch := range e.subscribers {
-		go func(ch Channel) {
-			for {
-				data, ok := <-ch.Ch
+	ch := e.subscribers[address]
 
-				if !ok {
-					wg.Done()
-					return
-				}
-				ch.Consumer(data)
+	go func(ch Channel) {
+		for {
+			data, ok := <-ch.Ch
+
+			if !ok {
+				e.wg.Done()
+				return
 			}
-		}(ch)
-	}
-	wg.Wait()
+			ch.Consumer(data)
+		}
+	}(ch)
 
+	e.wg.Wait()
 }
 
 func (e *DefaultEventBus) On(address string, handle func(data Message)) {
