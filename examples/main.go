@@ -46,11 +46,11 @@ func main() {
 
 func publishTo(address string, data string) {
 	for {
-		eventbus.Publish(address, data)
+		eventbus.Publish(address, goeventbus.Message{Data: data})
 		time.Sleep(time.Second)
 	}
 }
 
 func printMessage(data goeventbus.Message) {
-	fmt.Printf("Message %v\n", data.Data)
+	fmt.Printf("Message %s\n", data.Data)
 }

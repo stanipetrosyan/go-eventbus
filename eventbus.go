@@ -15,7 +15,7 @@ type Channel struct {
 
 type EventBus interface {
 	Subscribe(address string)
-	Publish(address string, data interface{})
+	Publish(address string, data Message)
 	On(address string, handle func(data Message))
 	Unsubscribe(address string)
 }
@@ -35,7 +35,7 @@ func (e *DefaultEventBus) Subscribe(address string) {
 	e.rm.Unlock()
 }
 
-func (e *DefaultEventBus) Publish(address string, data interface{}) {
+func (e *DefaultEventBus) Publish(address string, data Message) {
 	e.rm.Lock()
 
 	found := e.subscribers[address]
