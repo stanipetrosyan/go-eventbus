@@ -4,10 +4,6 @@ import (
 	"sync"
 )
 
-type Message struct {
-	Data interface{}
-}
-
 type Channel struct {
 	Ch       chan Message
 	Consumer func(data Message)
@@ -41,7 +37,7 @@ func (e *DefaultEventBus) Publish(address string, data Message) {
 	found := e.subscribers[address]
 	go func(data Message, ch Channel) {
 		ch.Ch <- data
-	}(Message{Data: data}, found)
+	}(data, found)
 
 	e.rm.Unlock()
 }

@@ -37,20 +37,22 @@ func main() {
 		printMessage(data)
 	})
 
-	go publishTo("topic1", "Hi topic 1")
-	go publishTo("topic2", "Hi topic 2")
-	go publishTo("topic3", "Hi topic 3")
+	header := []string{"this is a header"}
+
+	go publishTo("topic1", "Hi topic 1", header)
+	go publishTo("topic2", "Hi topic 2", header)
+	go publishTo("topic3", "Hi topic 3", header)
 
 	wg.Wait()
 }
 
-func publishTo(address string, data string) {
+func publishTo(address string, data string, headers []string) {
 	for {
-		eventbus.Publish(address, goeventbus.Message{Data: data})
+		eventbus.Publish(address, goeventbus.Message{Data: data, Headers: headers})
 		time.Sleep(time.Second)
 	}
 }
 
 func printMessage(data goeventbus.Message) {
-	fmt.Printf("Message %s\n", data.Data)
+	fmt.Printf("Message %s, Headers %s\n", data.Data, data.Headers[0])
 }
