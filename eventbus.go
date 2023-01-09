@@ -4,9 +4,9 @@ import (
 	"sync"
 )
 
-type Channel struct {
-	Ch       chan Message
-	Consumer func(data Message)
+type Handler struct {
+	Ch      chan Message
+	Consume func(data Message)
 }
 
 type EventBus interface {
@@ -14,19 +14,20 @@ type EventBus interface {
 	Publish(address string, data Message)
 	On(address string, handle func(data Message))
 	Unsubscribe(address string)
+	handle(address string)
 }
 
 type DefaultEventBus struct {
-	subscribers map[string]Channel
-	rm          sync.RWMutex
-	wg          sync.WaitGroup
+	Handlers map[string]Handler
+	rm       sync.RWMutex
+	wg       sync.WaitGroup
 }
 
 func (e *DefaultEventBus) Subscribe(address string) {
 	e.rm.Lock()
 
 	ch := make(chan Message)
-	e.subscribers[address] = Channel{Ch: ch, Consumer: func(data Message) { println("consumer not started") }}
+	e.Handlers[address] = Handler{Ch: ch, Consume: func(data Message) {}}
 
 	e.rm.Unlock()
 }
@@ -34,20 +35,20 @@ func (e *DefaultEventBus) Subscribe(address string) {
 func (e *DefaultEventBus) Publish(address string, data Message) {
 	e.rm.Lock()
 
-	found := e.subscribers[address]
-	go func(data Message, ch Channel) {
+	found := e.Handlers[address]
+	go func(data Message, ch Handler) {
 		ch.Ch <- data
 	}(data, found)
 
 	e.rm.Unlock()
 }
 
-func (e *DefaultEventBus) consume(address string) {
+func (e *DefaultEventBus) handle(address string) {
 	e.wg.Add(1)
 
-	ch := e.subscribers[address]
+	ch := e.Handlers[address]
 
-	go func(ch Channel) {
+	go func(Handler Handler) {
 		for {
 			data, ok := <-ch.Ch
 
@@ -55,7 +56,7 @@ func (e *DefaultEventBus) consume(address string) {
 				e.wg.Done()
 				return
 			}
-			ch.Consumer(data)
+			Handler.Consume(data)
 		}
 	}(ch)
 
@@ -63,25 +64,25 @@ func (e *DefaultEventBus) consume(address string) {
 }
 
 func (e *DefaultEventBus) On(address string, handle func(data Message)) {
-	ch := e.subscribers[address]
+	ch := e.Handlers[address]
 
-	e.subscribers[address] = Channel{Ch: ch.Ch, Consumer: handle}
+	e.Handlers[address] = Handler{Ch: ch.Ch, Consume: handle}
 
-	go e.consume(address)
+	go e.handle(address)
 }
 
 func (e *DefaultEventBus) Unsubscribe(address string) {
 	e.rm.Lock()
 
-	ch := e.subscribers[address]
+	ch := e.Handlers[address]
 	close(ch.Ch)
-	delete(e.subscribers, address)
+	delete(e.Handlers, address)
 
 	e.rm.Unlock()
 }
 
 func NewEventBus() EventBus {
 	return &DefaultEventBus{
-		subscribers: map[string]Channel{},
+		Handlers: map[string]Handler{},
 	}
 }
