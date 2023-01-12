@@ -48,7 +48,7 @@ func main() {
 
 func publishTo(address string, data string, headers []string) {
 	for {
-		eventbus.Publish(address, goeventbus.Message{Data: data, Headers: headers})
+		eventbus.Publish(address, goeventbus.Message{Data: data, Headers: headers}, goeventbus.MessageOptions{})
 		time.Sleep(time.Second)
 	}
 }

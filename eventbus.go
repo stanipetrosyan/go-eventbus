@@ -11,7 +11,7 @@ type Handler struct {
 
 type EventBus interface {
 	Subscribe(address string)
-	Publish(address string, data any)
+	Publish(address string, data any, options MessageOptions)
 	On(address string, handle func(data Message))
 	Unsubscribe(address string)
 	handle(address string)
@@ -32,7 +32,7 @@ func (e *DefaultEventBus) Subscribe(address string) {
 	e.rm.Unlock()
 }
 
-func (e *DefaultEventBus) Publish(address string, data any) {
+func (e *DefaultEventBus) Publish(address string, data any, options MessageOptions) {
 	e.rm.Lock()
 
 	message := Message{Data: data}
