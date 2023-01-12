@@ -4,13 +4,41 @@
 
 This is a simple implementation of an event bus in golang. Actually support just publish/subscribe messaging.
 
-## Usage
-
-Go in examples/main.go to see an example of usage.
-
+## Simple Usage
 
 To start use eventbus in your project, you can run the following command. 
 
 ```
 go get github.com/StaniPetrosyan/go-eventbus
 ```
+
+Let's see a simple example 
+
+```go
+
+import (
+	"fmt"
+	"time"
+
+	goeventbus "github.com/StaniPetrosyan/go-eventbus"
+)
+
+var eventbus = goeventbus.NewEventBus()
+
+func main() {
+	address := "topic"
+
+	eventbus.Subscribe(address)
+
+	eventbus.On("topic", func(data goeventbus.Message) {
+		fmt.Printf("Message %s\n", data.Data)
+	})
+
+	for {
+		eventbus.Publish(address, goeventbus.Message{Data: "Hi Topic"})
+		time.Sleep(time.Second)
+	}
+}
+
+```
+
