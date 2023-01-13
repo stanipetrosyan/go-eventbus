@@ -4,17 +4,12 @@ import (
 	"sync"
 )
 
-type Handler struct {
-	Ch      chan Message
-	Consume func(data Message)
-}
-
 type EventBus interface {
 	Subscribe(address string)
 	Publish(address string, data any, options MessageOptions)
-	On(address string, handle func(data Message))
+	On(address string, consumer func(data Message))
 	Unsubscribe(address string)
-	handle(address string)
+	handle(handler Handler)
 }
 
 type DefaultEventBus struct {
@@ -45,14 +40,20 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 	e.rm.Unlock()
 }
 
-func (e *DefaultEventBus) handle(address string) {
-	e.wg.Add(1)
-
+func (e *DefaultEventBus) On(address string, consumer func(data Message)) {
 	ch := e.handlers[address]
+
+	e.handlers[address] = Handler{Ch: ch.Ch, Consume: consumer}
+
+	go e.handle(e.handlers[address])
+}
+
+func (e *DefaultEventBus) handle(handler Handler) {
+	e.wg.Add(1)
 
 	go func(Handler Handler) {
 		for {
-			data, ok := <-ch.Ch
+			data, ok := <-handler.Ch
 
 			if !ok {
 				e.wg.Done()
@@ -60,17 +61,9 @@ func (e *DefaultEventBus) handle(address string) {
 			}
 			Handler.Consume(data)
 		}
-	}(ch)
+	}(handler)
 
 	e.wg.Wait()
-}
-
-func (e *DefaultEventBus) On(address string, handle func(data Message)) {
-	ch := e.handlers[address]
-
-	e.handlers[address] = Handler{Ch: ch.Ch, Consume: handle}
-
-	go e.handle(address)
 }
 
 func (e *DefaultEventBus) Unsubscribe(address string) {
