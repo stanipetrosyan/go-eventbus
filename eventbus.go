@@ -30,7 +30,7 @@ func (e *DefaultEventBus) Subscribe(address string) {
 func (e *DefaultEventBus) Publish(address string, data any, options MessageOptions) {
 	e.rm.Lock()
 
-	message := Message{Data: data}
+	message := Message{Data: data, Headers: options.headers}
 	found := e.handlers[address]
 
 	go func(data Message, ch Handler) {

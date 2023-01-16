@@ -1,21 +1,27 @@
 package goeventbus
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+var wg sync.WaitGroup
 
 func TestSubscribeHandler(t *testing.T) {
 	var eventBus = NewEventBus()
 
 	eventBus.Subscribe("address")
 
+	wg.Add(1)
 	eventBus.On("address", func(data Message) {
 		assert.Equal(t, "Hi There", data.Data)
+		wg.Done()
 	})
-
 	eventBus.Publish("address", "Hi There", MessageOptions{})
+	wg.Wait()
+
 }
 
 func TestMessageOptions(t *testing.T) {
@@ -23,12 +29,15 @@ func TestMessageOptions(t *testing.T) {
 
 	eventBus.Subscribe("address")
 
+	wg.Add(1)
 	eventBus.On("address", func(data Message) {
-		assert.Equal(t, "key", data.Headers[0])
+		assert.Equal(t, "value", data.Headers["key"])
+		wg.Done()
 	})
 
 	options := NewMessageOptions()
 	options.AddHeader("key", "value")
 
 	eventBus.Publish("address", "Hi There", options)
+	wg.Wait()
 }

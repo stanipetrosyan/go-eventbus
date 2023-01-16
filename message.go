@@ -2,15 +2,16 @@ package goeventbus
 
 type Message struct {
 	Data    interface{}
-	Headers []string
+	Headers map[string]string
 }
 
 type MessageOptions struct {
 	headers map[string]string
 }
 
-func (op MessageOptions) AddHeader(key string, value string) {
+func (op MessageOptions) AddHeader(key string, value string) MessageOptions {
 	op.headers[key] = value
+	return op
 }
 
 func NewMessageOptions() MessageOptions {
