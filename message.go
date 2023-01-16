@@ -14,6 +14,11 @@ func (op MessageOptions) AddHeader(key string, value string) MessageOptions {
 	return op
 }
 
+func (op MessageOptions) SetHeader(headers map[string]string) MessageOptions {
+	op.headers = headers
+	return op
+}
+
 func NewMessageOptions() MessageOptions {
 	return MessageOptions{
 		headers: map[string]string{},
