@@ -32,8 +32,6 @@ func TestStructToJson(t *testing.T) {
 
 	js, err := message.ToJson()
 
-	println(string(js))
-
 	assert.Nil(t, err)
 
 	var actual Fuzz
