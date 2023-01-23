@@ -35,10 +35,27 @@ func main() {
 	})
 
 	for {
-		eventbus.Publish(address, goeventbus.Message{Data: "Hi Topic"})
+		eventbus.Publish(address, "Hi Topic", MessageOptions{})
 		time.Sleep(time.Second)
 	}
 }
 
 ```
+
+### Options
+
+When publish a message, you can add message options like the following:
+
+```go
+	
+	// define new message option object
+	options := NewMessageOptions()
+
+	//add new header
+	options.AddHeader("key", "value")
+
+	eventBus.Publish("address", "Hi There", options)
+```
+
+
 
