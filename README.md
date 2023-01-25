@@ -1,3 +1,6 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/StaniPetrosyan/go-eventbus)](https://goreportcard.com/report/github.com/StaniPetrosyan/go-eventbus)
+![workflow](https://github.com/StaniPetrosyan/go-eventbus/actions/workflows/test.yml/badge.svg)
+
 # EventBus for Golang
 
 ## Description
