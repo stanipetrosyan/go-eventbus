@@ -31,9 +31,7 @@ var eventbus = goeventbus.NewEventBus()
 func main() {
 	address := "topic"
 
-	eventbus.Subscribe(address)
-
-	eventbus.On("topic", func(data goeventbus.Message) {
+	eventbus.Subscribe(address, func(data goeventbus.Message) {
 		fmt.Printf("Message %s\n", data.Data)
 	})
 
