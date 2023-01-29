@@ -12,10 +12,8 @@ var wg sync.WaitGroup
 func TestSubscribeHandler(t *testing.T) {
 	var eventBus = NewEventBus()
 
-	eventBus.Subscribe("address")
-
 	wg.Add(1)
-	eventBus.On("address", func(data Message) {
+	eventBus.Subscribe("address", func(data Message) {
 		assert.Equal(t, "Hi There", data.Data)
 		wg.Done()
 	})
@@ -27,10 +25,8 @@ func TestSubscribeHandler(t *testing.T) {
 func TestMessageOptions(t *testing.T) {
 	var eventBus = NewEventBus()
 
-	eventBus.Subscribe("address")
-
 	wg.Add(1)
-	eventBus.On("address", func(data Message) {
+	eventBus.Subscribe("address", func(data Message) {
 		assert.Equal(t, "value", data.Headers["key"])
 		wg.Done()
 	})

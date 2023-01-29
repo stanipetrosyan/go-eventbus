@@ -21,19 +21,15 @@ func main() {
 		//wg.Done()
 	}()
 
-	eventbus.Subscribe("topic1")
-	eventbus.Subscribe("topic2")
-	eventbus.Subscribe("topic3")
-
-	eventbus.On("topic1", func(data goeventbus.Message) {
+	eventbus.Subscribe("topic1", func(data goeventbus.Message) {
 		printMessage(data)
 	})
 
-	eventbus.On("topic2", func(data goeventbus.Message) {
+	eventbus.Subscribe("topic2", func(data goeventbus.Message) {
 		printMessage(data)
 	})
 
-	eventbus.On("topic3", func(data goeventbus.Message) {
+	eventbus.Subscribe("topic3", func(data goeventbus.Message) {
 		printMessage(data)
 	})
 

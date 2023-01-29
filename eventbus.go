@@ -5,9 +5,8 @@ import (
 )
 
 type EventBus interface {
-	Subscribe(address string)
+	Subscribe(address string, consumer func(data Message))
 	Publish(address string, data any, options MessageOptions)
-	On(address string, consumer func(data Message))
 	Unsubscribe(address string)
 	handle(handler Handler)
 }
@@ -18,34 +17,15 @@ type DefaultEventBus struct {
 	wg       sync.WaitGroup
 }
 
-func (e *DefaultEventBus) Subscribe(address string) {
+func (e *DefaultEventBus) Subscribe(address string, consumer func(data Message)) {
 	e.rm.Lock()
 
 	ch := make(chan Message)
-	e.handlers[address] = Handler{Ch: ch, Consume: func(data Message) {}}
-
-	e.rm.Unlock()
-}
-
-func (e *DefaultEventBus) Publish(address string, data any, options MessageOptions) {
-	e.rm.Lock()
-
-	message := Message{Data: data, Headers: options.headers}
-	found := e.handlers[address]
-
-	go func(data Message, ch Handler) {
-		ch.Ch <- data
-	}(message, found)
-
-	e.rm.Unlock()
-}
-
-func (e *DefaultEventBus) On(address string, consumer func(data Message)) {
-	ch := e.handlers[address]
-
-	e.handlers[address] = Handler{Ch: ch.Ch, Consume: consumer}
+	e.handlers[address] = Handler{Ch: ch, Consume: consumer}
 
 	go e.handle(e.handlers[address])
+
+	e.rm.Unlock()
 }
 
 func (e *DefaultEventBus) handle(handler Handler) {
@@ -64,6 +44,19 @@ func (e *DefaultEventBus) handle(handler Handler) {
 	}(handler)
 
 	e.wg.Wait()
+}
+
+func (e *DefaultEventBus) Publish(address string, data any, options MessageOptions) {
+	e.rm.Lock()
+
+	message := Message{Data: data, Headers: options.headers}
+	found := e.handlers[address]
+
+	go func(data Message, ch Handler) {
+		ch.Ch <- data
+	}(message, found)
+
+	e.rm.Unlock()
 }
 
 func (e *DefaultEventBus) Unsubscribe(address string) {
