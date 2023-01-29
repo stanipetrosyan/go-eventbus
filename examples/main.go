@@ -33,9 +33,14 @@ func main() {
 		printMessage(data)
 	})
 
+	eventbus.SubscribeOnce("topic4", func(data goeventbus.Message) {
+		printMessage(data)
+	})
+
 	go publishTo("topic1", "Hi topic 1")
 	go publishTo("topic2", "Hi topic 2")
 	go publishTo("topic3", "Hi topic 3")
+	go publishTo("topic4", "Hi topic 4")
 
 	wg.Wait()
 }

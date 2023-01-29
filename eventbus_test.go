@@ -19,7 +19,6 @@ func TestSubscribeHandler(t *testing.T) {
 	})
 	eventBus.Publish("address", "Hi There", MessageOptions{})
 	wg.Wait()
-
 }
 
 func TestMessageOptions(t *testing.T) {

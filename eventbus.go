@@ -6,6 +6,7 @@ import (
 
 type EventBus interface {
 	Subscribe(address string, consumer func(data Message))
+	SubscribeOnce(address string, consumer func(data Message))
 	Publish(address string, data any, options MessageOptions)
 	Unsubscribe(address string)
 	handle(handler Handler)
@@ -28,10 +29,26 @@ func (e *DefaultEventBus) Subscribe(address string, consumer func(data Message))
 	e.rm.Unlock()
 }
 
+func (e *DefaultEventBus) SubscribeOnce(address string, consumer func(data Message)) {
+	e.rm.Lock()
+
+	ch := make(chan Message)
+	e.handlers[address] = Handler{Ch: ch, Consume: consumer}
+
+	go func(handler Handler) {
+		data := <-handler.Ch
+
+		handler.Consume(data)
+		e.removeHandler(address)
+	}(e.handlers[address])
+
+	e.rm.Unlock()
+}
+
 func (e *DefaultEventBus) handle(handler Handler) {
 	e.wg.Add(1)
 
-	go func(Handler Handler) {
+	go func(handler Handler) {
 		for {
 			data, ok := <-handler.Ch
 
@@ -39,7 +56,7 @@ func (e *DefaultEventBus) handle(handler Handler) {
 				e.wg.Done()
 				return
 			}
-			Handler.Consume(data)
+			handler.Consume(data)
 		}
 	}(handler)
 
@@ -60,6 +77,10 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 }
 
 func (e *DefaultEventBus) Unsubscribe(address string) {
+	e.removeHandler(address)
+}
+
+func (e *DefaultEventBus) removeHandler(address string) {
 	e.rm.Lock()
 
 	ch := e.handlers[address]
