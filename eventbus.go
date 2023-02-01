@@ -9,7 +9,6 @@ type EventBus interface {
 	SubscribeOnce(address string, consumer func(data Message))
 	Publish(address string, data any, options MessageOptions)
 	Unsubscribe(address string)
-	handle(handler Handler)
 }
 
 type DefaultEventBus struct {
@@ -22,9 +21,8 @@ func (e *DefaultEventBus) Subscribe(address string, consumer func(data Message))
 	e.rm.Lock()
 
 	ch := make(chan Message)
-	e.handlers[address] = Handler{Ch: ch, Consume: consumer}
-
-	go e.handle(e.handlers[address])
+	e.handlers[address] = Handler{Ch: ch, Consume: consumer, Address: address}
+	go e.handle(e.handlers[address], false)
 
 	e.rm.Unlock()
 }
@@ -33,34 +31,10 @@ func (e *DefaultEventBus) SubscribeOnce(address string, consumer func(data Messa
 	e.rm.Lock()
 
 	ch := make(chan Message)
-	e.handlers[address] = Handler{Ch: ch, Consume: consumer}
-
-	go func(handler Handler) {
-		data := <-handler.Ch
-
-		handler.Consume(data)
-		e.removeHandler(address)
-	}(e.handlers[address])
+	e.handlers[address] = Handler{Ch: ch, Consume: consumer, Address: address}
+	go e.handle(e.handlers[address], true)
 
 	e.rm.Unlock()
-}
-
-func (e *DefaultEventBus) handle(handler Handler) {
-	e.wg.Add(1)
-
-	go func(handler Handler) {
-		for {
-			data, ok := <-handler.Ch
-
-			if !ok {
-				e.wg.Done()
-				return
-			}
-			handler.Consume(data)
-		}
-	}(handler)
-
-	e.wg.Wait()
 }
 
 func (e *DefaultEventBus) Publish(address string, data any, options MessageOptions) {
@@ -78,6 +52,30 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 
 func (e *DefaultEventBus) Unsubscribe(address string) {
 	e.removeHandler(address)
+}
+
+func (e *DefaultEventBus) handle(handler Handler, once bool) {
+	e.wg.Add(1)
+
+	go func(handler Handler) {
+		for {
+			data, ok := <-handler.Ch
+
+			if !ok {
+				e.wg.Done()
+				return
+			}
+
+			handler.Consume(data)
+
+			if once {
+				e.removeHandler(handler.Address)
+				e.wg.Done()
+			}
+		}
+	}(handler)
+
+	e.wg.Wait()
 }
 
 func (e *DefaultEventBus) removeHandler(address string) {

@@ -15,32 +15,44 @@ To start use eventbus in your project, you can run the following command.
 go get github.com/StaniPetrosyan/go-eventbus
 ```
 
+And import 
+``` go
+import (
+	goeventbus "github.com/StaniPetrosyan/go-eventbus"
+)
+
+```
+
 Let's see a simple example 
 
 ```go
 
-import (
-	"fmt"
-	"time"
-
-	goeventbus "github.com/StaniPetrosyan/go-eventbus"
-)
-
 var eventbus = goeventbus.NewEventBus()
 
-func main() {
-	address := "topic"
+address := "topic"
 
-	eventbus.Subscribe(address, func(data goeventbus.Message) {
-		fmt.Printf("Message %s\n", data.Data)
-	})
+eventbus.Subscribe(address, func(data goeventbus.Message) {
+	fmt.Printf("Message %s\n", data.Data)
+})
 
-	for {
-		eventbus.Publish(address, "Hi Topic", MessageOptions{})
-		time.Sleep(time.Second)
-	}
+for {
+	eventbus.Publish(address, "Hi Topic", MessageOptions{})
+	time.Sleep(time.Second)
 }
 
+```
+
+If you want handle once: 
+```go
+var eventbus = goeventbus.NewEventBus()
+
+address := "topic"
+
+eventbus.SubscribeOnce(address, func(data goeventbus.Message) {
+	fmt.Printf("This Message %s\n will be printed once time", data.Data)
+})
+
+eventbus.Publish(address, "Hi Topic", MessageOptions{})
 ```
 
 ### Options
@@ -48,14 +60,14 @@ func main() {
 When publish a message, you can add message options like the following:
 
 ```go
-	
-	// define new message option object
-	options := NewMessageOptions()
 
-	//add new header
-	options.AddHeader("key", "value")
+// define new message option object
+options := NewMessageOptions()
 
-	eventBus.Publish("address", "Hi There", options)
+//add new header
+options.AddHeader("key", "value")
+
+eventBus.Publish("address", "Hi There", options)
 ```
 
 
