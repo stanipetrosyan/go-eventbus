@@ -5,3 +5,7 @@ type Handler struct {
 	Consume func(data Message)
 	Address string
 }
+
+func (h *Handler) Close() {
+	close(h.Ch)
+}

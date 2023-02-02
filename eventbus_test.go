@@ -21,6 +21,27 @@ func TestSubscribeHandler(t *testing.T) {
 	wg.Wait()
 }
 
+func TestTwiceSubscribe(t *testing.T) {
+	var eventBus = NewEventBus()
+
+	wg.Add(2)
+
+	eventBus.Subscribe("address", func(data Message) {
+		println("primo")
+		assert.Equal(t, "Hi There", data.Data)
+		wg.Done()
+	})
+
+	eventBus.Subscribe("address", func(data Message) {
+		println("secondo")
+		assert.Equal(t, "Hi There", data.Data)
+		wg.Done()
+	})
+
+	eventBus.Publish("address", "Hi There", MessageOptions{})
+	wg.Wait()
+}
+
 func TestMessageOptions(t *testing.T) {
 	var eventBus = NewEventBus()
 

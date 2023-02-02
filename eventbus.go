@@ -12,40 +12,45 @@ type EventBus interface {
 }
 
 type DefaultEventBus struct {
-	handlers map[string]Handler
+	handlers map[string][]Handler // Use a pointer ?
 	rm       sync.RWMutex
 	wg       sync.WaitGroup
 }
 
 func (e *DefaultEventBus) Subscribe(address string, consumer func(data Message)) {
-	e.rm.Lock()
 
+	// Duplication here and in once
 	ch := make(chan Message)
-	e.handlers[address] = Handler{Ch: ch, Consume: consumer, Address: address}
-	go e.handle(e.handlers[address], false)
+	handler := Handler{Ch: ch, Consume: consumer, Address: address}
 
+	e.rm.Lock()
+	e.handlers[address] = append(e.handlers[address], handler)
 	e.rm.Unlock()
+
+	go e.handle(handler, false)
 }
 
 func (e *DefaultEventBus) SubscribeOnce(address string, consumer func(data Message)) {
-	e.rm.Lock()
-
 	ch := make(chan Message)
-	e.handlers[address] = Handler{Ch: ch, Consume: consumer, Address: address}
-	go e.handle(e.handlers[address], true)
+	handler := Handler{Ch: ch, Consume: consumer, Address: address}
 
+	e.rm.Lock()
+	e.handlers[address] = append(e.handlers[address], handler)
 	e.rm.Unlock()
+
+	go e.handle(handler, true)
 }
 
 func (e *DefaultEventBus) Publish(address string, data any, options MessageOptions) {
 	e.rm.Lock()
 
 	message := Message{Data: data, Headers: options.headers}
-	found := e.handlers[address]
 
-	go func(data Message, ch Handler) {
-		ch.Ch <- data
-	}(message, found)
+	for _, item := range e.handlers[address] {
+		go func(handler Handler, data Message) {
+			handler.Ch <- data
+		}(item, message)
+	}
 
 	e.rm.Unlock()
 }
@@ -54,13 +59,13 @@ func (e *DefaultEventBus) Unsubscribe(address string) {
 	e.removeHandler(address)
 }
 
+// maybe a Handler function ?
 func (e *DefaultEventBus) handle(handler Handler, once bool) {
 	e.wg.Add(1)
 
 	go func(handler Handler) {
 		for {
 			data, ok := <-handler.Ch
-
 			if !ok {
 				e.wg.Done()
 				return
@@ -80,16 +85,16 @@ func (e *DefaultEventBus) handle(handler Handler, once bool) {
 
 func (e *DefaultEventBus) removeHandler(address string) {
 	e.rm.Lock()
+	defer e.rm.Unlock()
 
-	ch := e.handlers[address]
-	close(ch.Ch)
+	for _, handler := range e.handlers[address] {
+		handler.Close()
+	}
 	delete(e.handlers, address)
-
-	e.rm.Unlock()
 }
 
 func NewEventBus() EventBus {
 	return &DefaultEventBus{
-		handlers: map[string]Handler{},
+		handlers: map[string][]Handler{},
 	}
 }
