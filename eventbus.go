@@ -18,27 +18,11 @@ type DefaultEventBus struct {
 }
 
 func (e *DefaultEventBus) Subscribe(address string, consumer func(data Message)) {
-
-	// Duplication here and in once
-	ch := make(chan Message)
-	handler := Handler{Ch: ch, Consume: consumer, Address: address}
-
-	e.rm.Lock()
-	e.handlers[address] = append(e.handlers[address], handler)
-	e.rm.Unlock()
-
-	go e.handle(handler, false)
+	e.subscribe(address, consumer, false)
 }
 
 func (e *DefaultEventBus) SubscribeOnce(address string, consumer func(data Message)) {
-	ch := make(chan Message)
-	handler := Handler{Ch: ch, Consume: consumer, Address: address}
-
-	e.rm.Lock()
-	e.handlers[address] = append(e.handlers[address], handler)
-	e.rm.Unlock()
-
-	go e.handle(handler, true)
+	e.subscribe(address, consumer, true)
 }
 
 func (e *DefaultEventBus) Publish(address string, data any, options MessageOptions) {
@@ -57,6 +41,17 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 
 func (e *DefaultEventBus) Unsubscribe(address string) {
 	e.removeHandler(address)
+}
+
+func (e *DefaultEventBus) subscribe(address string, consumer func(data Message), once bool) {
+	ch := make(chan Message)
+	handler := Handler{Ch: ch, Consume: consumer, Address: address}
+
+	e.rm.Lock()
+	e.handlers[address] = append(e.handlers[address], handler)
+	e.rm.Unlock()
+
+	go e.handle(handler, once)
 }
 
 // maybe a Handler function ?
