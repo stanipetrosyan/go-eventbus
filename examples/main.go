@@ -16,7 +16,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		time.Sleep(4 * time.Second)
-		eventbus.Unsubscribe("topic1")
+		//	eventbus.Unsubscribe("topic1")
 		println("Unsubscribed topic1 handler")
 		//wg.Done()
 	}()

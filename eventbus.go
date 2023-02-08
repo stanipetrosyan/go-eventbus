@@ -12,7 +12,7 @@ type EventBus interface {
 }
 
 type DefaultEventBus struct {
-	handlers map[string][]Handler // Use a pointer ?
+	handlers map[string][]*Handler // Use a pointer ?
 	rm       sync.RWMutex
 	wg       sync.WaitGroup
 }
@@ -31,8 +31,10 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 	message := Message{Data: data, Headers: options.headers}
 
 	for _, item := range e.handlers[address] {
-		go func(handler Handler, data Message) {
-			handler.Ch <- data
+		go func(handler *Handler, data Message) {
+			if !handler.flagOnce {
+				handler.Ch <- data
+			}
 		}(item, message)
 	}
 
@@ -45,36 +47,18 @@ func (e *DefaultEventBus) Unsubscribe(address string) {
 
 func (e *DefaultEventBus) subscribe(address string, consumer func(data Message), once bool) {
 	ch := make(chan Message)
-	handler := Handler{Ch: ch, Consume: consumer, Address: address}
+	handler := Handler{Ch: ch, Consume: consumer, Address: address, flagOnce: false}
 
 	e.rm.Lock()
-	e.handlers[address] = append(e.handlers[address], handler)
+	e.handlers[address] = append(e.handlers[address], &handler)
 	e.rm.Unlock()
 
 	go e.handle(handler, once)
 }
 
-// maybe a Handler function ?
 func (e *DefaultEventBus) handle(handler Handler, once bool) {
 	e.wg.Add(1)
-
-	go func(handler Handler) {
-		for {
-			data, ok := <-handler.Ch
-			if !ok {
-				e.wg.Done()
-				return
-			}
-
-			handler.Consume(data)
-
-			if once {
-				e.removeHandler(handler.Address)
-				e.wg.Done()
-			}
-		}
-	}(handler)
-
+	go handler.Handle(once, &e.wg)
 	e.wg.Wait()
 }
 
@@ -90,6 +74,6 @@ func (e *DefaultEventBus) removeHandler(address string) {
 
 func NewEventBus() EventBus {
 	return &DefaultEventBus{
-		handlers: map[string][]Handler{},
+		handlers: map[string][]*Handler{},
 	}
 }

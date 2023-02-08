@@ -27,13 +27,11 @@ func TestTwiceSubscribe(t *testing.T) {
 	wg.Add(2)
 
 	eventBus.Subscribe("address", func(data Message) {
-		println("primo")
 		assert.Equal(t, "Hi There", data.Data)
 		wg.Done()
 	})
 
 	eventBus.Subscribe("address", func(data Message) {
-		println("secondo")
 		assert.Equal(t, "Hi There", data.Data)
 		wg.Done()
 	})
