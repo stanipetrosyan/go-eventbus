@@ -4,11 +4,18 @@ import (
 	"sync"
 )
 
+type DeliveryContext interface {
+	Next()
+	Reply()
+}
+
 type EventBus interface {
 	Subscribe(address string, consumer func(data Message))
 	SubscribeOnce(address string, consumer func(data Message))
 	Publish(address string, data any, options MessageOptions)
+	Send(address string, data any, options MessageOptions)
 	Unsubscribe(address string)
+	Request(address string, consumer func(message Message, context DeliveryContext))
 }
 
 type DefaultEventBus struct {
