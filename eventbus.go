@@ -4,18 +4,15 @@ import (
 	"sync"
 )
 
-type DeliveryContext interface {
-	Next()
-	Reply()
-}
+type HandlerFunc func(DeliveryContext)
 
 type EventBus interface {
-	Subscribe(address string, consumer func(data Message))
-	SubscribeOnce(address string, consumer func(data Message))
+	Subscribe(address string, consumer HandlerFunc)
+	SubscribeOnce(address string, consumer HandlerFunc)
 	Publish(address string, data any, options MessageOptions)
-	Send(address string, data any, options MessageOptions)
+	//Send(address string, data any, options MessageOptions)
 	Unsubscribe(address string)
-	Request(address string, consumer func(message Message, context DeliveryContext))
+	//Request(address string, consumer func(context DeliveryContext))
 }
 
 type DefaultEventBus struct {
@@ -24,11 +21,11 @@ type DefaultEventBus struct {
 	wg       sync.WaitGroup
 }
 
-func (e *DefaultEventBus) Subscribe(address string, consumer func(data Message)) {
+func (e *DefaultEventBus) Subscribe(address string, consumer HandlerFunc) {
 	e.subscribe(address, consumer, false)
 }
 
-func (e *DefaultEventBus) SubscribeOnce(address string, consumer func(data Message)) {
+func (e *DefaultEventBus) SubscribeOnce(address string, consumer HandlerFunc) {
 	e.subscribe(address, consumer, true)
 }
 
@@ -52,9 +49,9 @@ func (e *DefaultEventBus) Unsubscribe(address string) {
 	e.removeHandler(address)
 }
 
-func (e *DefaultEventBus) subscribe(address string, consumer func(data Message), once bool) {
+func (e *DefaultEventBus) subscribe(address string, consumer HandlerFunc, once bool) {
 	ch := make(chan Message)
-	handler := Handler{Ch: ch, Consume: consumer, Address: address, closed: false}
+	handler := Handler{Ch: ch, Consumer: consumer, Address: address, closed: false}
 
 	e.rm.Lock()
 	e.handlers[address] = append(e.handlers[address], &handler)

@@ -13,8 +13,9 @@ func TestSubscribeHandler(t *testing.T) {
 	var eventBus = NewEventBus()
 
 	wg.Add(1)
-	eventBus.Subscribe("address", func(data Message) {
-		assert.Equal(t, "Hi There", data.Data)
+
+	eventBus.Subscribe("address", func(context DeliveryContext) {
+		assert.Equal(t, "Hi There", context.Result().Data)
 		wg.Done()
 	})
 	eventBus.Publish("address", "Hi There", MessageOptions{})
@@ -26,13 +27,13 @@ func TestTwiceSubscribe(t *testing.T) {
 
 	wg.Add(2)
 
-	eventBus.Subscribe("address", func(data Message) {
-		assert.Equal(t, "Hi There", data.Data)
+	eventBus.Subscribe("address", func(context DeliveryContext) {
+		assert.Equal(t, "Hi There", context.Result().Data)
 		wg.Done()
 	})
 
-	eventBus.Subscribe("address", func(data Message) {
-		assert.Equal(t, "Hi There", data.Data)
+	eventBus.Subscribe("address", func(context DeliveryContext) {
+		assert.Equal(t, "Hi There", context.Result().Data)
 		wg.Done()
 	})
 
@@ -44,8 +45,8 @@ func TestMessageOptions(t *testing.T) {
 	var eventBus = NewEventBus()
 
 	wg.Add(1)
-	eventBus.Subscribe("address", func(data Message) {
-		assert.Equal(t, "value", data.Headers["key"])
+	eventBus.Subscribe("address", func(context DeliveryContext) {
+		assert.Equal(t, "value", context.Result().Headers["key"])
 		wg.Done()
 	})
 

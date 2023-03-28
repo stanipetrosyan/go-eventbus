@@ -21,20 +21,20 @@ func main() {
 		//wg.Done()
 	}()
 
-	eventbus.Subscribe("topic1", func(data goeventbus.Message) {
-		printMessage(data)
+	eventbus.Subscribe("topic1", func(dc goeventbus.DeliveryContext) {
+		printMessage(dc.Result())
 	})
 
-	eventbus.Subscribe("topic2", func(data goeventbus.Message) {
-		printMessage(data)
+	eventbus.Subscribe("topic2", func(dc goeventbus.DeliveryContext) {
+		printMessage(dc.Result())
 	})
 
-	eventbus.Subscribe("topic3", func(data goeventbus.Message) {
-		printMessage(data)
+	eventbus.Subscribe("topic3", func(dc goeventbus.DeliveryContext) {
+		printMessage(dc.Result())
 	})
 
-	eventbus.SubscribeOnce("topic4", func(data goeventbus.Message) {
-		printMessage(data)
+	eventbus.SubscribeOnce("topic4", func(dc goeventbus.DeliveryContext) {
+		printMessage(dc.Result())
 	})
 
 	go publishTo("topic1", "Hi topic 1")

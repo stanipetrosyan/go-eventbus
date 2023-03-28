@@ -3,10 +3,10 @@ package goeventbus
 import "sync"
 
 type Handler struct {
-	Ch      chan Message
-	Consume func(data Message)
-	Address string
-	closed  bool
+	Ch       chan Message
+	Consumer HandlerFunc
+	Address  string
+	closed   bool
 }
 
 func (h *Handler) Close() {
@@ -21,7 +21,9 @@ func (h *Handler) Handle(once bool, wg *sync.WaitGroup) {
 			return
 		}
 
-		h.Consume(data)
+		context := NewDeliveryContext(data)
+
+		h.Consumer(context)
 
 		if once {
 			h.closed = true
