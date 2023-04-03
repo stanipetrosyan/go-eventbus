@@ -51,10 +51,10 @@ func TestRequestReplyHandler(t *testing.T) {
 	})
 
 	eventBus.Request("address", "Hi there", func(context DeliveryContext) {
-		println("sono nella request con")
-		println(context)
-		assert.Equal(t, "Hello", context.Result().Data)
-		wg.Done()
+		context.Handle(func(message Message) {
+			assert.Equal(t, "Hello", message.Data)
+			wg.Done()
+		})
 	})
 	wg.Wait()
 }

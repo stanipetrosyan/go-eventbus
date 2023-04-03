@@ -2,6 +2,7 @@ package goeventbus
 
 type DeliveryContext interface {
 	Reply(data any)
+	Handle(func(message Message))
 	Result() Message
 	SetData(msg Message) DeliveryContext
 }
@@ -16,8 +17,13 @@ func (d *DefaultDeliveryContext) Result() Message {
 }
 
 func (d *DefaultDeliveryContext) Reply(data any) {
-
 	d.ch <- Message{Data: data}
+}
+
+func (d *DefaultDeliveryContext) Handle(consume func(message Message)) {
+	for data := range d.ch {
+		consume(data)
+	}
 }
 
 func (d *DefaultDeliveryContext) SetData(msg Message) DeliveryContext {

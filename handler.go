@@ -5,6 +5,7 @@ import "sync"
 type Handler struct {
 	Ch       chan Message
 	Consumer HandlerFunc
+	Context  DeliveryContext
 	Address  string
 	closed   bool
 }

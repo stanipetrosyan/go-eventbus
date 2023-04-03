@@ -54,7 +54,7 @@ func (e *DefaultEventBus) Request(address string, data any, consumer func(contex
 		go func(handler *Handler, data Message) {
 			if !handler.closed {
 				handler.Ch <- data
-				consumer(handler)
+				consumer(handler.Context)
 			}
 		}(item, message)
 	}
@@ -68,7 +68,8 @@ func (e *DefaultEventBus) Unsubscribe(address string) {
 
 func (e *DefaultEventBus) subscribe(address string, consumer HandlerFunc, once bool) {
 	ch := make(chan Message)
-	handler := Handler{Ch: ch, Consumer: consumer, Address: address, closed: false}
+	context := DefaultDeliveryContext{ch: ch}
+	handler := Handler{Ch: ch, Consumer: consumer, Context: &context, Address: address, closed: false}
 
 	e.rm.Lock()
 	e.handlers[address] = append(e.handlers[address], &handler)
