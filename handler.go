@@ -14,6 +14,8 @@ func (h *Handler) Close() {
 }
 
 func (h *Handler) Handle(once bool, wg *sync.WaitGroup) {
+	context := NewDeliveryContext(Message{}, h.Ch)
+
 	for {
 		data, ok := <-h.Ch
 		if !ok {
@@ -21,9 +23,7 @@ func (h *Handler) Handle(once bool, wg *sync.WaitGroup) {
 			return
 		}
 
-		context := NewDeliveryContext(data)
-
-		h.Consumer(context)
+		h.Consumer(context.SetData(data))
 
 		if once {
 			h.closed = true

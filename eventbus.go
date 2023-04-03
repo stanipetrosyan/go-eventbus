@@ -12,7 +12,7 @@ type EventBus interface {
 	Publish(address string, data any, options MessageOptions)
 	//Send(address string, data any, options MessageOptions)
 	Unsubscribe(address string)
-	//Request(address string, consumer func(context DeliveryContext))
+	Request(address string, data any, consumer func(context DeliveryContext))
 }
 
 type DefaultEventBus struct {
@@ -38,6 +38,23 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 		go func(handler *Handler, data Message) {
 			if !handler.closed {
 				handler.Ch <- data
+			}
+		}(item, message)
+	}
+
+	e.rm.Unlock()
+}
+
+func (e *DefaultEventBus) Request(address string, data any, consumer func(context DeliveryContext)) {
+	e.rm.Lock()
+
+	message := Message{Data: data}
+
+	for _, item := range e.handlers[address] {
+		go func(handler *Handler, data Message) {
+			if !handler.closed {
+				handler.Ch <- data
+				consumer(handler)
 			}
 		}(item, message)
 	}
