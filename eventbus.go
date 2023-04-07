@@ -10,9 +10,8 @@ type EventBus interface {
 	Subscribe(address string, consumer HandlerFunc)
 	SubscribeOnce(address string, consumer HandlerFunc)
 	Publish(address string, data any, options MessageOptions)
-	//Send(address string, data any, options MessageOptions)
 	Unsubscribe(address string)
-	Request(address string, data any, consumer func(context DeliveryContext))
+	Request(address string, data any, options MessageOptions, consumer func(context DeliveryContext))
 }
 
 type DefaultEventBus struct {
@@ -45,10 +44,10 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 	e.rm.Unlock()
 }
 
-func (e *DefaultEventBus) Request(address string, data any, consumer func(context DeliveryContext)) {
+func (e *DefaultEventBus) Request(address string, data any, options MessageOptions, consumer func(context DeliveryContext)) {
 	e.rm.Lock()
 
-	message := Message{Data: data}
+	message := Message{Data: data, Headers: options.headers}
 
 	for _, item := range e.handlers[address] {
 		go func(handler *Handler, data Message) {

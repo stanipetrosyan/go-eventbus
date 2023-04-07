@@ -5,9 +5,11 @@
 
 ## Description
 
-This is a simple implementation of an event bus in golang. Actually support just publish/subscribe messaging.
+This is a simple implementation of an event bus in golang. Actually support:
+* publish/subscribe messaging.
+* request/reply messaging
 
-## Simple Usage
+## Get Started
 
 To start use eventbus in your project, you can run the following command. 
 
@@ -23,7 +25,7 @@ import (
 
 ```
 
-Let's see a simple example 
+## Publish/Subscribe
 
 ```go
 
@@ -31,15 +33,14 @@ var eventbus = goeventbus.NewEventBus()
 
 address := "topic"
 
-eventbus.Subscribe(address, func(data goeventbus.Message) {
-	fmt.Printf("Message %s\n", data.Data)
+eventbus.Subscribe(address, func(dc goeventbus.DeliveryContext) {
+	fmt.Printf("Message %s\n", dc.Result().Data)
 })
 
 for {
 	eventbus.Publish(address, "Hi Topic", MessageOptions{})
 	time.Sleep(time.Second)
 }
-
 ```
 
 If you want handle once: 
@@ -48,11 +49,31 @@ var eventbus = goeventbus.NewEventBus()
 
 address := "topic"
 
-eventbus.SubscribeOnce(address, func(data goeventbus.Message) {
-	fmt.Printf("This Message %s\n will be printed once time", data.Data)
+eventbus.SubscribeOnce(address, func(dc goeventbus.DeliveryContext) {
+	fmt.Printf("This Message %s\n will be printed once time", dc.Result().Data)
 })
 
 eventbus.Publish(address, "Hi Topic", MessageOptions{})
+```
+
+## Request/Reply messaging
+
+```go
+
+var eventbus = goeventbus.NewEventBus()
+
+address := "topic"
+
+eventbus.Subscribe(address, func(dc goeventbus.DeliveryContext) {
+	fmt.Printf("Message %s\n", dc.Result().Data)
+	dc.Reply("Hi from topic")
+})
+	
+eventbus.Request(address, "Hi Topic", func(dc goeventbus.DeliveryContext) {
+	dc.Handle(func(message Message) {
+			fmt.Printf("Message %s\n", message.Data)
+	})
+})
 ```
 
 ### Options

@@ -50,7 +50,7 @@ func TestRequestReplyHandler(t *testing.T) {
 		context.Reply("Hello")
 	})
 
-	eventBus.Request("address", "Hi there", func(context DeliveryContext) {
+	eventBus.Request("address", "Hi there", MessageOptions{}, func(context DeliveryContext) {
 		context.Handle(func(message Message) {
 			assert.Equal(t, "Hello", message.Data)
 			wg.Done()
