@@ -12,6 +12,7 @@ type EventBus interface {
 	Publish(address string, data any, options MessageOptions)
 	Unsubscribe(address string)
 	Request(address string, data any, options MessageOptions, consumer func(context DeliveryContext))
+	AddInBoundInterceptor(address string, consumer func(context DeliveryContext))
 }
 
 type DefaultEventBus struct {
@@ -36,7 +37,12 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 	for _, item := range e.handlers[address] {
 		go func(handler *Handler, data Message) {
 			if !handler.closed {
-				handler.Ch <- data
+				if len(handler.Interceptors) > 0 {
+					handler.Interceptors[0].Ch <- data
+					handler.Interceptors[0].Consumer(handler.Context)
+				} else {
+					handler.Ch <- data
+				}
 			}
 		}(item, message)
 	}
@@ -59,6 +65,13 @@ func (e *DefaultEventBus) Request(address string, data any, options MessageOptio
 	}
 
 	e.rm.Unlock()
+}
+
+func (e *DefaultEventBus) AddInBoundInterceptor(address string, consumer func(context DeliveryContext)) {
+	for _, item := range e.handlers[address] {
+		ch := make(chan Message)
+		item.AddInterceptor(Interceptor{Ch: ch, Consumer: consumer})
+	}
 }
 
 func (e *DefaultEventBus) Unsubscribe(address string) {

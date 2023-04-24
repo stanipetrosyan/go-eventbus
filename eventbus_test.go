@@ -59,6 +59,26 @@ func TestRequestReplyHandler(t *testing.T) {
 	wg.Wait()
 }
 
+func TestInBoundInterceptorHandler(t *testing.T) {
+	var eventBus = NewEventBus()
+
+	wg.Add(2)
+
+	eventBus.Subscribe("address", func(context DeliveryContext) {
+		assert.Equal(t, "Hi there", context.Result().Data)
+		wg.Done()
+	})
+
+	eventBus.AddInBoundInterceptor("address", func(context DeliveryContext) {
+		assert.Equal(t, "Hi there", context.Result().Data)
+		wg.Done()
+		context.Next()
+	})
+
+	eventBus.Publish("address", "Hi there", MessageOptions{})
+	wg.Wait()
+}
+
 func TestMessageOptions(t *testing.T) {
 	var eventBus = NewEventBus()
 

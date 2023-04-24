@@ -5,6 +5,7 @@ type DeliveryContext interface {
 	Handle(func(message Message))
 	Result() Message
 	SetData(msg Message) DeliveryContext
+	Next()
 }
 
 type DefaultDeliveryContext struct {
@@ -29,6 +30,10 @@ func (d *DefaultDeliveryContext) Handle(consume func(message Message)) {
 func (d *DefaultDeliveryContext) SetData(msg Message) DeliveryContext {
 	d.message = msg
 	return d
+}
+
+func (d *DefaultDeliveryContext) Next() {
+	d.ch <- d.message
 }
 
 func NewDeliveryContext(message Message, ch chan Message) DeliveryContext {
