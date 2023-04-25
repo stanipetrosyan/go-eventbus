@@ -5,3 +5,7 @@ type Topic struct {
 	Handlers    []*Handler
 	Interceptor []*Handler
 }
+
+func (t *Topic) AddInterceptor(interceptor Handler) {
+	t.Interceptor = append(t.Interceptor, &interceptor)
+}

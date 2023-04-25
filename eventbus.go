@@ -16,10 +16,9 @@ type EventBus interface {
 }
 
 type DefaultEventBus struct {
-	handlers map[string][]*Handler
-	topics   map[string]*Topic
-	rm       sync.RWMutex
-	wg       sync.WaitGroup
+	topics map[string]*Topic
+	rm     sync.RWMutex
+	wg     sync.WaitGroup
 }
 
 func (e *DefaultEventBus) Subscribe(address string, consumer HandlerFunc) {
@@ -32,7 +31,6 @@ func (e *DefaultEventBus) SubscribeOnce(address string, consumer HandlerFunc) {
 
 func (e *DefaultEventBus) Publish(address string, data any, options MessageOptions) {
 	e.rm.Lock()
-
 	defer e.rm.Unlock()
 
 	message := Message{Data: data, Headers: options.headers}
@@ -45,12 +43,7 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 	for _, item := range topic.Handlers {
 		go func(handler *Handler, data Message) {
 			if !handler.closed {
-				if len(handler.Interceptors) > 0 {
-					handler.Interceptors[0].Ch <- data
-					handler.Interceptors[0].Consumer(handler.Context)
-				} else {
-					handler.Ch <- data
-				}
+				handler.Ch <- data
 			}
 		}(item, message)
 	}
@@ -59,6 +52,7 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 
 func (e *DefaultEventBus) Request(address string, data any, options MessageOptions, consumer func(context DeliveryContext)) {
 	e.rm.Lock()
+	defer e.rm.Unlock()
 
 	message := Message{Data: data, Headers: options.headers}
 
@@ -71,14 +65,11 @@ func (e *DefaultEventBus) Request(address string, data any, options MessageOptio
 		}(item, message)
 	}
 
-	e.rm.Unlock()
 }
 
 func (e *DefaultEventBus) AddInBoundInterceptor(address string, consumer func(context DeliveryContext)) {
-	for _, item := range e.handlers[address] {
-		ch := make(chan Message)
-		item.AddInterceptor(Interceptor{Ch: ch, Consumer: consumer})
-	}
+	ch := make(chan Message)
+	e.topics[address].AddInterceptor(Handler{Ch: ch, Consumer: consumer})
 }
 
 func (e *DefaultEventBus) Unsubscribe(address string) {
@@ -98,7 +89,6 @@ func (e *DefaultEventBus) subscribe(address string, consumer HandlerFunc, once b
 
 	e.topics[address].Handlers = append(e.topics[address].Handlers, &handler)
 
-	e.handlers[address] = append(e.handlers[address], &handler)
 	e.rm.Unlock()
 
 	go e.handle(&handler, once)
@@ -122,7 +112,6 @@ func (e *DefaultEventBus) removeHandler(address string) {
 
 func NewEventBus() EventBus {
 	return &DefaultEventBus{
-		handlers: map[string][]*Handler{},
-		topics:   map[string]*Topic{},
+		topics: map[string]*Topic{},
 	}
 }

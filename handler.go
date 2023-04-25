@@ -2,18 +2,12 @@ package goeventbus
 
 import "sync"
 
-type Interceptor struct {
+type Handler struct {
 	Ch       chan Message
 	Consumer HandlerFunc
-}
-
-type Handler struct {
-	Ch           chan Message
-	Consumer     HandlerFunc
-	Context      DeliveryContext
-	Address      string
-	closed       bool
-	Interceptors []Interceptor
+	Context  DeliveryContext
+	Address  string
+	closed   bool
 }
 
 func (h *Handler) Close() {
@@ -36,8 +30,4 @@ func (h *Handler) Handle(once bool, wg *sync.WaitGroup) {
 			wg.Done()
 		}
 	}
-}
-
-func (h *Handler) AddInterceptor(interceptor Interceptor) {
-	h.Interceptors = append(h.Interceptors, interceptor)
 }
