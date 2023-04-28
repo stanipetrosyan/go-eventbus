@@ -40,12 +40,22 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 		return
 	}
 
-	for _, item := range topic.Handlers {
-		go func(handler *Handler, data Message) {
-			if !handler.closed {
-				handler.Ch <- data
-			}
-		}(item, message)
+	if len(e.topics[address].Interceptor) > 0 {
+		for _, item := range topic.Handlers {
+			go func(handler *Handler, data Message) {
+				if !handler.closed {
+					handler.Ch <- data
+				}
+			}(item, message)
+		}
+	} else {
+		for _, item := range topic.Handlers {
+			go func(handler *Handler, data Message) {
+				if !handler.closed {
+					handler.Ch <- data
+				}
+			}(item, message)
+		}
 	}
 
 }
@@ -69,7 +79,9 @@ func (e *DefaultEventBus) Request(address string, data any, options MessageOptio
 
 func (e *DefaultEventBus) AddInBoundInterceptor(address string, consumer func(context DeliveryContext)) {
 	ch := make(chan Message)
-	e.topics[address].AddInterceptor(Handler{Ch: ch, Consumer: consumer})
+	context := DefaultDeliveryContext{chs: e.topics[address].GetChannels()}
+	handler := e.topics[address].AddInterceptor(Handler{Ch: ch, Consumer: consumer, Context: &context})
+	go e.handle(handler, false)
 }
 
 func (e *DefaultEventBus) Unsubscribe(address string) {
@@ -78,7 +90,7 @@ func (e *DefaultEventBus) Unsubscribe(address string) {
 
 func (e *DefaultEventBus) subscribe(address string, consumer HandlerFunc, once bool) {
 	ch := make(chan Message)
-	context := DefaultDeliveryContext{ch: ch}
+	context := DefaultDeliveryContext{chs: []chan Message{ch}}
 	handler := Handler{Ch: ch, Consumer: consumer, Context: &context, Address: address, closed: false}
 
 	e.rm.Lock()

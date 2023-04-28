@@ -10,7 +10,7 @@ type DeliveryContext interface {
 
 type DefaultDeliveryContext struct {
 	message Message
-	ch      chan Message
+	chs     []chan Message
 }
 
 func (d *DefaultDeliveryContext) Result() Message {
@@ -18,13 +18,15 @@ func (d *DefaultDeliveryContext) Result() Message {
 }
 
 func (d *DefaultDeliveryContext) Reply(data any) {
-	d.ch <- Message{Data: data}
+	for _, item := range d.chs {
+		item <- Message{Data: data}
+	}
 }
 
 func (d *DefaultDeliveryContext) Handle(consume func(message Message)) {
-	for data := range d.ch {
+	/*for data := range d.ch {
 		consume(data)
-	}
+	}*/
 }
 
 func (d *DefaultDeliveryContext) SetData(msg Message) DeliveryContext {
@@ -33,9 +35,12 @@ func (d *DefaultDeliveryContext) SetData(msg Message) DeliveryContext {
 }
 
 func (d *DefaultDeliveryContext) Next() {
-	d.ch <- d.message
+	println("ciaoooo")
+	for _, item := range d.chs {
+		item <- d.message
+	}
 }
 
-func NewDeliveryContext(message Message, ch chan Message) DeliveryContext {
-	return &DefaultDeliveryContext{message: message, ch: ch}
+func NewDeliveryContext(message Message, chs []chan Message) DeliveryContext {
+	return &DefaultDeliveryContext{message: message, chs: chs}
 }
