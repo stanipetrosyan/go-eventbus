@@ -24,9 +24,15 @@ func (d *DefaultDeliveryContext) Reply(data any) {
 }
 
 func (d *DefaultDeliveryContext) Handle(consume func(message Message)) {
-	/*for data := range d.ch {
-		consume(data)
-	}*/
+
+	for _, ch := range d.chs {
+		go func(ch chan Message) {
+			for data := range ch {
+				consume(data)
+			}
+		}(ch)
+	}
+
 }
 
 func (d *DefaultDeliveryContext) SetData(msg Message) DeliveryContext {
@@ -35,7 +41,6 @@ func (d *DefaultDeliveryContext) SetData(msg Message) DeliveryContext {
 }
 
 func (d *DefaultDeliveryContext) Next() {
-	println("ciaoooo")
 	for _, item := range d.chs {
 		item <- d.message
 	}

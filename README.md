@@ -76,7 +76,7 @@ eventbus.Request(address, "Hi Topic", func(dc goeventbus.DeliveryContext) {
 })
 ```
 
-### Options
+## Options
 
 When publish a message, you can add message options like the following:
 
@@ -90,6 +90,17 @@ options.AddHeader("key", "value")
 
 eventBus.Publish("address", "Hi There", options)
 ```
+
+## In Bound Interceptor 
+
+```go
+
+eventbus.AddInBoundInterceptor("topic1", func(context goeventbus.DeliveryContext) {
+	context.Next()
+})
+```
+
+
 
 
 

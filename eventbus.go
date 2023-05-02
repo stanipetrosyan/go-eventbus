@@ -41,7 +41,7 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 	}
 
 	if len(e.topics[address].Interceptor) > 0 {
-		for _, item := range topic.Handlers {
+		for _, item := range topic.Interceptor {
 			go func(handler *Handler, data Message) {
 				if !handler.closed {
 					handler.Ch <- data

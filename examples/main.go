@@ -25,6 +25,10 @@ func main() {
 		printMessage(dc.Result())
 	})
 
+	eventbus.AddInBoundInterceptor("topic1", func(context goeventbus.DeliveryContext) {
+		context.Next()
+	})
+
 	eventbus.Subscribe("topic2", func(dc goeventbus.DeliveryContext) {
 		printMessage(dc.Result())
 	})

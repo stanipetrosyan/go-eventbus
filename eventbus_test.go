@@ -70,7 +70,6 @@ func TestInBoundInterceptorHandler(t *testing.T) {
 	})
 
 	eventBus.AddInBoundInterceptor("address", func(context DeliveryContext) {
-		println(context.Result().Data)
 		assert.Equal(t, "Hi there", context.Result().Data)
 		wg.Done()
 		context.Next()
