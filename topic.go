@@ -11,6 +11,14 @@ func (t *Topic) AddInterceptor(interceptor Handler) *Handler {
 	return &interceptor
 }
 
+func (t *Topic) GetHandlers() []*Handler {
+	if len(t.Interceptor) > 0 {
+		return t.Interceptor
+	}
+
+	return t.Handlers
+}
+
 func (t *Topic) GetChannels() []chan Message {
 	chs := []chan Message{}
 

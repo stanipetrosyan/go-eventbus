@@ -39,25 +39,11 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 	if !exists {
 		return
 	}
-
-	if len(e.topics[address].Interceptor) > 0 {
-		for _, item := range topic.Interceptor {
-			go func(handler *Handler, data Message) {
-				if !handler.closed {
-					handler.Ch <- data
-				}
-			}(item, message)
-		}
-	} else {
-		for _, item := range topic.Handlers {
-			go func(handler *Handler, data Message) {
-				if !handler.closed {
-					handler.Ch <- data
-				}
-			}(item, message)
+	for _, handler := range topic.GetHandlers() {
+		if !handler.closed {
+			handler.Ch <- message
 		}
 	}
-
 }
 
 func (e *DefaultEventBus) Request(address string, data any, options MessageOptions, consumer func(context DeliveryContext)) {
