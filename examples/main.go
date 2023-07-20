@@ -14,12 +14,6 @@ func main() {
 
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go func() {
-		time.Sleep(4 * time.Second)
-		eventbus.Unsubscribe("topic1")
-		println("Unsubscribed topic1 handler")
-		//wg.Done()
-	}()
 
 	eventbus.Subscribe("topic1", func(dc goeventbus.DeliveryContext) {
 		printMessage(dc.Result())
