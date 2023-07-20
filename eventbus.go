@@ -8,7 +8,6 @@ type EventBus interface {
 	Subscribe(address string, consumer func(context DeliveryContext))
 	SubscribeOnce(address string, consumer func(context DeliveryContext))
 	Publish(address string, message Message)
-	Unsubscribe(address string)
 	Request(address string, message Message, consumer func(context DeliveryContext))
 	AddInBoundInterceptor(address string, consumer func(context DeliveryContext))
 }
@@ -62,20 +61,26 @@ func (e *DefaultEventBus) Request(address string, message Message, consumer func
 }
 
 func (e *DefaultEventBus) AddInBoundInterceptor(address string, consumer func(context DeliveryContext)) {
+	_, exists := e.topics[address]
+	if !exists {
+		e.topics[address] = NewTopic(address)
+	}
+
 	ch := make(chan Message)
 	context := DefaultDeliveryContext{chs: e.topics[address].GetChannels()}
-	handler := e.topics[address].AddInterceptor(Handler{Ch: ch, Consumer: consumer, Context: &context})
-	go e.handle(handler, false)
-}
+	handler := Handler{Ch: ch, Consumer: consumer, Context: &context, Address: address, closed: false}
 
-func (e *DefaultEventBus) Unsubscribe(address string) {
-	e.removeHandler(address)
+	e.rm.Lock()
+	e.topics[address].AddInterceptor(handler)
+	e.rm.Unlock()
+
+	go e.handle(&handler, false)
 }
 
 func (e *DefaultEventBus) subscribe(address string, consumer func(context DeliveryContext), once bool) {
 	_, exists := e.topics[address]
 	if !exists {
-		e.topics[address] = &Topic{Address: address, Handlers: []*Handler{}}
+		e.topics[address] = NewTopic(address)
 	}
 
 	ch := make(chan Message)
@@ -92,16 +97,6 @@ func (e *DefaultEventBus) handle(handler *Handler, once bool) {
 	e.wg.Add(1)
 	go handler.Handle(once, &e.wg)
 	e.wg.Wait()
-}
-
-func (e *DefaultEventBus) removeHandler(address string) {
-	e.rm.Lock()
-	defer e.rm.Unlock()
-
-	for _, handler := range e.topics[address].Handlers {
-		handler.Close()
-	}
-	delete(e.topics, address)
 }
 
 func NewEventBus() EventBus {

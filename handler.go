@@ -19,7 +19,6 @@ type Handler struct {
 }
 
 func (h *Handler) Close() {
-	h.closed = true
 	close(h.Ch)
 }
 
@@ -34,6 +33,7 @@ func (h *Handler) Handle(once bool, wg *sync.WaitGroup) {
 		h.Consumer(h.Context.SetData(data))
 
 		if once {
+			h.closed = true
 			h.Close()
 			wg.Done()
 		}
@@ -41,5 +41,5 @@ func (h *Handler) Handle(once bool, wg *sync.WaitGroup) {
 }
 
 func (h *Handler) NewHandler() *Handler {
-	return &Handler{}
+	return &Handler{closed: false}
 }

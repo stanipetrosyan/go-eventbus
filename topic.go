@@ -24,6 +24,10 @@ func (t *Topic) GetHandlers() []*Handler {
 	return t.Handlers
 }
 
+func (t *Topic) Close() {
+
+}
+
 func (t *Topic) GetChannels() []chan Message {
 	chs := []chan Message{}
 
@@ -32,4 +36,8 @@ func (t *Topic) GetChannels() []chan Message {
 	}
 
 	return chs
+}
+
+func NewTopic(address string) *Topic {
+	return &Topic{Address: address, Handlers: []*Handler{}, Interceptor: []*Handler{}}
 }
