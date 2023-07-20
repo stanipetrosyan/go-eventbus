@@ -31,16 +31,35 @@ func main() {
 		printMessage(dc.Result())
 	})
 
-	eventbus.SubscribeOnce("topic4", func(dc goeventbus.DeliveryContext) {
+	eventbus.Subscribe("topic4", func(dc goeventbus.DeliveryContext) {
 		printMessage(dc.Result())
+	})
+
+	eventbus.Subscribe("topic5", func(dc goeventbus.DeliveryContext) {
+		printMessage(dc.Result())
+		dc.Reply("Hi Publisher")
 	})
 
 	go publishTo("topic1", "Hi topic 1")
 	go publishTo("topic2", "Hi topic 2")
 	go publishTo("topic3", "Hi topic 3")
 	go publishTo("topic4", "Hi topic 4")
+	go RequestTo("topic5", "Hi topic 5")
 
 	wg.Wait()
+}
+
+func RequestTo(address string, data string) {
+	options := goeventbus.NewMessageOptions().AddHeader("header", "value")
+	message := goeventbus.CreateMessage().SetBody(data).SetOptions(options)
+	for {
+		eventbus.Request(address, message, func(context goeventbus.DeliveryContext) {
+			context.Handle(func(message goeventbus.Message) {
+				printMessage(message)
+			})
+		})
+		time.Sleep(time.Second)
+	}
 }
 
 func publishTo(address string, data string) {

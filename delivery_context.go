@@ -46,6 +46,6 @@ func (d *DefaultDeliveryContext) Next() {
 	}
 }
 
-func NewDeliveryContext(message Message, chs []chan Message) DeliveryContext {
-	return &DefaultDeliveryContext{message: message, chs: chs}
+func NewDeliveryContext(chs []chan Message) DeliveryContext {
+	return &DefaultDeliveryContext{chs: chs}
 }

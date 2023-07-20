@@ -67,8 +67,8 @@ func (e *DefaultEventBus) AddInBoundInterceptor(address string, consumer func(co
 	}
 
 	ch := make(chan Message)
-	context := DefaultDeliveryContext{chs: e.topics[address].GetChannels()}
-	handler := Handler{Ch: ch, Consumer: consumer, Context: &context, Address: address, closed: false}
+	context := NewDeliveryContext(e.topics[address].GetChannels())
+	handler := Handler{Ch: ch, Consumer: consumer, Context: context, Address: address, closed: false}
 
 	e.rm.Lock()
 	e.topics[address].AddInterceptor(handler)
@@ -84,8 +84,8 @@ func (e *DefaultEventBus) subscribe(address string, consumer func(context Delive
 	}
 
 	ch := make(chan Message)
-	context := DefaultDeliveryContext{chs: []chan Message{ch}}
-	handler := Handler{Ch: ch, Consumer: consumer, Context: &context, Address: address, closed: false}
+	context := NewDeliveryContext([]chan Message{ch})
+	handler := Handler{Ch: ch, Consumer: consumer, Context: context, Address: address, closed: false}
 
 	e.rm.Lock()
 	e.topics[address].AddHandler(handler)

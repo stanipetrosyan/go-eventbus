@@ -24,10 +24,6 @@ func (t *Topic) GetHandlers() []*Handler {
 	return t.Handlers
 }
 
-func (t *Topic) Close() {
-
-}
-
 func (t *Topic) GetChannels() []chan Message {
 	chs := []chan Message{}
 
