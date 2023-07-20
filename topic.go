@@ -11,6 +11,11 @@ func (t *Topic) AddInterceptor(interceptor Handler) *Handler {
 	return &interceptor
 }
 
+func (t *Topic) AddHandler(handler Handler) *Handler {
+	t.Handlers = append(t.Handlers, &handler)
+	return &handler
+}
+
 func (t *Topic) GetHandlers() []*Handler {
 	if len(t.Interceptor) > 0 {
 		return t.Interceptor

@@ -4,11 +4,9 @@ import (
 	"sync"
 )
 
-type HandlerFunc func(DeliveryContext)
-
 type EventBus interface {
-	Subscribe(address string, consumer HandlerFunc)
-	SubscribeOnce(address string, consumer HandlerFunc)
+	Subscribe(address string, consumer func(context DeliveryContext))
+	SubscribeOnce(address string, consumer func(context DeliveryContext))
 	Publish(address string, data any, options MessageOptions)
 	Unsubscribe(address string)
 	Request(address string, data any, options MessageOptions, consumer func(context DeliveryContext))
@@ -21,11 +19,11 @@ type DefaultEventBus struct {
 	wg     sync.WaitGroup
 }
 
-func (e *DefaultEventBus) Subscribe(address string, consumer HandlerFunc) {
+func (e *DefaultEventBus) Subscribe(address string, consumer func(context DeliveryContext)) {
 	e.subscribe(address, consumer, false)
 }
 
-func (e *DefaultEventBus) SubscribeOnce(address string, consumer HandlerFunc) {
+func (e *DefaultEventBus) SubscribeOnce(address string, consumer func(context DeliveryContext)) {
 	e.subscribe(address, consumer, true)
 }
 
@@ -52,7 +50,11 @@ func (e *DefaultEventBus) Request(address string, data any, options MessageOptio
 
 	message := Message{Data: data, Headers: options.headers}
 
-	for _, item := range e.topics[address].Handlers {
+	topic, exists := e.topics[address]
+	if !exists {
+		return
+	}
+	for _, item := range topic.Handlers {
 		go func(handler *Handler, data Message) {
 			if !handler.closed {
 				handler.Ch <- data
@@ -74,21 +76,19 @@ func (e *DefaultEventBus) Unsubscribe(address string) {
 	e.removeHandler(address)
 }
 
-func (e *DefaultEventBus) subscribe(address string, consumer HandlerFunc, once bool) {
-	ch := make(chan Message)
-	context := DefaultDeliveryContext{chs: []chan Message{ch}}
-	handler := Handler{Ch: ch, Consumer: consumer, Context: &context, Address: address, closed: false}
-
-	e.rm.Lock()
+func (e *DefaultEventBus) subscribe(address string, consumer func(context DeliveryContext), once bool) {
 	_, exists := e.topics[address]
 	if !exists {
 		e.topics[address] = &Topic{Address: address, Handlers: []*Handler{}}
 	}
 
-	e.topics[address].Handlers = append(e.topics[address].Handlers, &handler)
+	ch := make(chan Message)
+	context := DefaultDeliveryContext{chs: []chan Message{ch}}
+	handler := Handler{Ch: ch, Consumer: consumer, Context: &context, Address: address, closed: false}
 
+	e.rm.Lock()
+	e.topics[address].AddHandler(handler)
 	e.rm.Unlock()
-
 	go e.handle(&handler, once)
 }
 
