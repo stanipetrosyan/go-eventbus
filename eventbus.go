@@ -7,9 +7,9 @@ import (
 type EventBus interface {
 	Subscribe(address string, consumer func(context DeliveryContext))
 	SubscribeOnce(address string, consumer func(context DeliveryContext))
-	Publish(address string, data any, options MessageOptions)
+	Publish(address string, message Message)
 	Unsubscribe(address string)
-	Request(address string, data any, options MessageOptions, consumer func(context DeliveryContext))
+	Request(address string, message Message, consumer func(context DeliveryContext))
 	AddInBoundInterceptor(address string, consumer func(context DeliveryContext))
 }
 
@@ -27,11 +27,9 @@ func (e *DefaultEventBus) SubscribeOnce(address string, consumer func(context De
 	e.subscribe(address, consumer, true)
 }
 
-func (e *DefaultEventBus) Publish(address string, data any, options MessageOptions) {
+func (e *DefaultEventBus) Publish(address string, message Message) {
 	e.rm.Lock()
 	defer e.rm.Unlock()
-
-	message := Message{Data: data, Headers: options.headers}
 
 	topic, exists := e.topics[address]
 	if !exists {
@@ -44,11 +42,9 @@ func (e *DefaultEventBus) Publish(address string, data any, options MessageOptio
 	}
 }
 
-func (e *DefaultEventBus) Request(address string, data any, options MessageOptions, consumer func(context DeliveryContext)) {
+func (e *DefaultEventBus) Request(address string, message Message, consumer func(context DeliveryContext)) {
 	e.rm.Lock()
 	defer e.rm.Unlock()
-
-	message := Message{Data: data, Headers: options.headers}
 
 	topic, exists := e.topics[address]
 	if !exists {

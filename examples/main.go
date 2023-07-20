@@ -51,12 +51,13 @@ func main() {
 
 func publishTo(address string, data string) {
 	options := goeventbus.NewMessageOptions().AddHeader("header", "value")
+	message := goeventbus.CreateMessage().SetBody(data).SetOptions(options)
 	for {
-		eventbus.Publish(address, data, options)
+		eventbus.Publish(address, message)
 		time.Sleep(time.Second)
 	}
 }
 
 func printMessage(data goeventbus.Message) {
-	fmt.Printf("Message %s, Headers %s\n", data.Data, data.Headers["header"])
+	fmt.Printf("Message %s, Headers %s\n", data.Data, data.Options)
 }

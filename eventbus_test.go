@@ -18,7 +18,9 @@ func TestSubscribeHandler(t *testing.T) {
 		assert.Equal(t, "Hi There", context.Result().Data)
 		wg.Done()
 	})
-	eventBus.Publish("address", "Hi There", MessageOptions{})
+
+	message := CreateMessage().SetBody("Hi There")
+	eventBus.Publish("address", message)
 	wg.Wait()
 }
 
@@ -37,7 +39,8 @@ func TestTwiceSubscribe(t *testing.T) {
 		wg.Done()
 	})
 
-	eventBus.Publish("address", "Hi There", MessageOptions{})
+	message := CreateMessage().SetBody("Hi There")
+	eventBus.Publish("address", message)
 	wg.Wait()
 }
 
@@ -50,7 +53,8 @@ func TestRequestReplyHandler(t *testing.T) {
 		context.Reply("Hello")
 	})
 
-	eventBus.Request("address", "Hi there", MessageOptions{}, func(context DeliveryContext) {
+	message := CreateMessage().SetBody("Hi There")
+	eventBus.Request("address", message, func(context DeliveryContext) {
 		context.Handle(func(message Message) {
 			assert.Equal(t, "Hello", message.Data)
 			wg.Done()
@@ -65,17 +69,18 @@ func TestInBoundInterceptorHandler(t *testing.T) {
 	wg.Add(2)
 
 	eventBus.Subscribe("address", func(context DeliveryContext) {
-		assert.Equal(t, "Hi there", context.Result().Data)
+		assert.Equal(t, "Hi There", context.Result().Data)
 		wg.Done()
 	})
 
 	eventBus.AddInBoundInterceptor("address", func(context DeliveryContext) {
-		assert.Equal(t, "Hi there", context.Result().Data)
+		assert.Equal(t, "Hi There", context.Result().Data)
 		wg.Done()
 		context.Next()
 	})
 
-	eventBus.Publish("address", "Hi there", MessageOptions{})
+	message := CreateMessage().SetBody("Hi There")
+	eventBus.Publish("address", message)
 	wg.Wait()
 }
 
@@ -84,13 +89,11 @@ func TestMessageOptions(t *testing.T) {
 
 	wg.Add(1)
 	eventBus.Subscribe("address", func(context DeliveryContext) {
-		assert.Equal(t, "value", context.Result().Headers["key"])
+		assert.Equal(t, "value", context.Result().Options.Header("key"))
 		wg.Done()
 	})
 
-	options := NewMessageOptions()
-	options.AddHeader("key", "value")
-
-	eventBus.Publish("address", "Hi There", options)
+	message := CreateMessage().SetBody("Hi There").SetOptions(NewMessageOptions().AddHeader("key", "value"))
+	eventBus.Publish("address", message)
 	wg.Wait()
 }
