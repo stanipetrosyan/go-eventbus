@@ -20,7 +20,11 @@ func main() {
 	})
 
 	eventbus.AddInBoundInterceptor("topic1", func(context goeventbus.DeliveryContext) {
-		context.Next()
+		if context.Result().Data == "Hi topic 1" {
+			context.Next()
+		} else {
+			println("Message not passed")
+		}
 	})
 
 	eventbus.Subscribe("topic2", func(dc goeventbus.DeliveryContext) {
@@ -41,6 +45,7 @@ func main() {
 	})
 
 	go publishTo("topic1", "Hi topic 1")
+	go publishTo("topic1", "Message to block")
 	go publishTo("topic2", "Hi topic 2")
 	go publishTo("topic3", "Hi topic 3")
 	go publishTo("topic4", "Hi topic 4")
