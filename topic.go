@@ -6,7 +6,7 @@ type Topic struct {
 	Interceptors []*Handler
 }
 
-func (t *Topic) AddHandler(handler Handler) {
+func (t *Topic) AddHandler(handler *Handler) {
 	switch handler.Type {
 	case Consumer:
 		t.addConsumer(handler)
@@ -15,14 +15,14 @@ func (t *Topic) AddHandler(handler Handler) {
 	}
 }
 
-func (t *Topic) addConsumer(handler Handler) *Handler {
-	t.Consumers = append(t.Consumers, &handler)
-	return &handler
+func (t *Topic) addConsumer(handler *Handler) *Handler {
+	t.Consumers = append(t.Consumers, handler)
+	return handler
 }
 
-func (t *Topic) addInterceptor(interceptor Handler) *Handler {
-	t.Interceptors = append(t.Interceptors, &interceptor)
-	return &interceptor
+func (t *Topic) addInterceptor(interceptor *Handler) *Handler {
+	t.Interceptors = append(t.Interceptors, interceptor)
+	return interceptor
 }
 
 func (t *Topic) GetHandlers() []*Handler {

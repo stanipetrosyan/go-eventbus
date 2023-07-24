@@ -14,15 +14,17 @@ type Handler struct {
 	Consumer func(context DeliveryContext)
 	Context  DeliveryContext
 	Address  string
-	closed   bool
+	Closed   bool
+	Once     bool
 	Type     HandlerType
 }
 
 func (h *Handler) Close() {
 	close(h.Ch)
+	h.Closed = true
 }
 
-func (h *Handler) Handle(once bool, wg *sync.WaitGroup) {
+func (h *Handler) Handle(wg *sync.WaitGroup) {
 	for {
 		data, ok := <-h.Ch
 		if !ok {
@@ -32,14 +34,14 @@ func (h *Handler) Handle(once bool, wg *sync.WaitGroup) {
 
 		h.Consumer(h.Context.SetData(data))
 
-		if once {
-			h.closed = true
-			h.Close()
+		if h.Once {
+			h.Closed = true
+			close(h.Ch)
 			wg.Done()
 		}
 	}
 }
 
 func (h *Handler) NewHandler() *Handler {
-	return &Handler{closed: false}
+	return &Handler{Closed: false}
 }

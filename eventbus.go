@@ -47,17 +47,17 @@ func (e *DefaultEventBus) subscribe(address string, consumer func(context Delive
 	}
 
 	context := NewDeliveryContext(channels)
-	handler := Handler{Ch: ch, Consumer: consumer, Context: context, Address: address, closed: false, Type: handlerType}
+	handler := Handler{Ch: ch, Consumer: consumer, Context: context, Address: address, Closed: false, Once: once, Type: handlerType}
 
 	e.rm.Lock()
-	e.topics[address].AddHandler(handler)
+	e.topics[address].AddHandler(&handler)
 	e.rm.Unlock()
 	go e.handle(&handler, once)
 }
 
 func (e *DefaultEventBus) handle(handler *Handler, once bool) {
 	e.wg.Add(1)
-	go handler.Handle(once, &e.wg)
+	go handler.Handle(&e.wg)
 	e.wg.Wait()
 }
 
@@ -70,7 +70,7 @@ func (e *DefaultEventBus) Publish(address string, message Message) {
 		return
 	}
 	for _, handler := range topic.GetHandlers() {
-		if !handler.closed {
+		if !handler.Closed {
 			handler.Ch <- message
 		}
 	}
@@ -86,7 +86,7 @@ func (e *DefaultEventBus) Request(address string, message Message, consumer func
 	}
 	for _, item := range topic.GetHandlers() {
 		go func(handler *Handler, data Message) {
-			if !handler.closed {
+			if !handler.Closed {
 				handler.Ch <- data
 				consumer(handler.Context)
 			}
