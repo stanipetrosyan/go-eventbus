@@ -52,10 +52,10 @@ func (e *DefaultEventBus) subscribe(address string, consumer func(context Delive
 	e.rm.Lock()
 	e.topics[address].AddHandler(&handler)
 	e.rm.Unlock()
-	go e.handle(&handler, once)
+	go e.handle(&handler)
 }
 
-func (e *DefaultEventBus) handle(handler *Handler, once bool) {
+func (e *DefaultEventBus) handle(handler *Handler) {
 	e.wg.Add(1)
 	go handler.Handle(&e.wg)
 	e.wg.Wait()

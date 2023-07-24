@@ -10,7 +10,7 @@ func TestAddNewConsumer(t *testing.T) {
 	topic := NewTopic("topic")
 
 	actual := Handler{Address: "topic", Type: Consumer}
-	topic.AddHandler(actual)
+	topic.AddHandler(&actual)
 
 	handlers := topic.GetHandlers()
 	assert.Equal(t, handlers[0].Address, actual.Address)
@@ -21,7 +21,7 @@ func TestAddNewInterceptor(t *testing.T) {
 	topic := NewTopic("topic")
 
 	actual := Handler{Address: "topic", Type: Consumer}
-	topic.AddHandler(actual)
+	topic.AddHandler(&actual)
 
 	handlers := topic.GetHandlers()
 	assert.Equal(t, handlers[0].Address, actual.Address)

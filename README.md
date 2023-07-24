@@ -32,13 +32,15 @@ import (
 var eventbus = goeventbus.NewEventBus()
 
 address := "topic"
+options := goeventbus.NewMessageOptions().AddHeader("header", "value")
+message := goeventbus.CreateMessage().SetBody("Hi Topic").SetOptions(options)
 
 eventbus.Subscribe(address, func(dc goeventbus.DeliveryContext) {
 	fmt.Printf("Message %s\n", dc.Result().Data)
 })
 
 for {
-	eventbus.Publish(address, "Hi Topic", MessageOptions{})
+	eventbus.Publish(address, message)
 	time.Sleep(time.Second)
 }
 ```
@@ -53,7 +55,8 @@ eventbus.SubscribeOnce(address, func(dc goeventbus.DeliveryContext) {
 	fmt.Printf("This Message %s\n will be printed once time", dc.Result().Data)
 })
 
-eventbus.Publish(address, "Hi Topic", MessageOptions{})
+message := goeventbus.CreateMessage().SetBody("Hi Topic")
+eventbus.Publish(address, message)
 ```
 
 ## Request/Reply messaging
@@ -76,19 +79,23 @@ eventbus.Request(address, "Hi Topic", func(dc goeventbus.DeliveryContext) {
 })
 ```
 
-## Options
+## Message
 
-When publish a message, you can add message options like the following:
+For publishing, you need to create a Message object using this method. 
+
+```go
+message := goeventbus.CreateMessage().SetBody("Hi Topic")
+```
+Each message can have some options:
 
 ```go
 
-// define new message option object
-options := NewMessageOptions()
+options := goeventbus.NewMessageOptions().AddHeader("header", "value")
+message := goeventbus.CreateMessage()
 
-//add new header
-options.AddHeader("key", "value")
+message.SetOptions(options)
 
-eventBus.Publish("address", "Hi There", options)
+eventBus.Publish("address", message)
 ```
 
 ## In Bound Interceptor 
@@ -96,7 +103,8 @@ eventBus.Publish("address", "Hi There", options)
 ```go
 
 eventbus.AddInBoundInterceptor("topic1", func(context goeventbus.DeliveryContext) {
-	context.Next()
+	if (some logic)
+		context.Next()
 })
 ```
 
