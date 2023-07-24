@@ -11,7 +11,7 @@ const (
 
 type Handler struct {
 	Ch       chan Message
-	Consumer func(context DeliveryContext)
+	Callback func(context DeliveryContext)
 	Context  DeliveryContext
 	Address  string
 	Closed   bool
@@ -32,7 +32,7 @@ func (h *Handler) Handle(wg *sync.WaitGroup) {
 			return
 		}
 
-		h.Consumer(h.Context.SetData(data))
+		h.Callback(h.Context.SetData(data))
 
 		if h.Once {
 			h.Closed = true
