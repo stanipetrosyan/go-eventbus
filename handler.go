@@ -15,7 +15,6 @@ type Handler struct {
 	Context  DeliveryContext
 	Address  string
 	Closed   bool
-	Once     bool
 	Type     HandlerType
 }
 
@@ -33,12 +32,6 @@ func (h *Handler) Handle(wg *sync.WaitGroup) {
 		}
 
 		h.Callback(h.Context.SetData(data))
-
-		if h.Once {
-			h.Closed = true
-			close(h.Ch)
-			wg.Done()
-		}
 	}
 }
 

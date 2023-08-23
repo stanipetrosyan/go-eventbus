@@ -6,7 +6,6 @@ import (
 
 type EventBus interface {
 	Subscribe(address string, callback func(context DeliveryContext))
-	SubscribeOnce(address string, callback func(context DeliveryContext))
 	AddInBoundInterceptor(address string, callback func(context DeliveryContext))
 	Publish(address string, message Message)
 	Request(address string, message Message, callback func(context DeliveryContext))
@@ -19,18 +18,14 @@ type DefaultEventBus struct {
 }
 
 func (e *DefaultEventBus) Subscribe(address string, callback func(context DeliveryContext)) {
-	e.subscribe(address, callback, false, false)
-}
-
-func (e *DefaultEventBus) SubscribeOnce(address string, callback func(context DeliveryContext)) {
-	e.subscribe(address, callback, true, false)
+	e.subscribe(address, callback, false)
 }
 
 func (e *DefaultEventBus) AddInBoundInterceptor(address string, callback func(context DeliveryContext)) {
-	e.subscribe(address, callback, false, true)
+	e.subscribe(address, callback, true)
 }
 
-func (e *DefaultEventBus) subscribe(address string, callback func(context DeliveryContext), once bool, interceptor bool) {
+func (e *DefaultEventBus) subscribe(address string, callback func(context DeliveryContext), interceptor bool) {
 	_, exists := e.topics[address]
 	if !exists {
 		e.topics[address] = NewTopic(address)
@@ -47,7 +42,7 @@ func (e *DefaultEventBus) subscribe(address string, callback func(context Delive
 	}
 
 	context := NewDeliveryContext(channels)
-	handler := Handler{Ch: ch, Callback: callback, Context: context, Address: address, Closed: false, Once: once, Type: handlerType}
+	handler := Handler{Ch: ch, Callback: callback, Context: context, Address: address, Closed: false, Type: handlerType}
 
 	e.rm.Lock()
 	e.topics[address].AddHandler(&handler)

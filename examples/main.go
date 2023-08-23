@@ -44,17 +44,12 @@ func main() {
 		dc.Reply("Hi Publisher")
 	})
 
-	eventbus.SubscribeOnce("topic6", func(context goeventbus.DeliveryContext) {
-		printMessage(context.Result())
-	})
-
 	go publishTo("topic1", "Hi topic 1")
 	go publishTo("topic1", "Message to block")
 	go publishTo("topic2", "Hi topic 2")
 	go publishTo("topic3", "Hi topic 3")
 	go publishTo("topic4", "Hi topic 4")
 	go RequestTo("topic5", "Hi topic 5")
-	go publishTo("topic6", "Hi topic 6")
 
 	wg.Wait()
 }
