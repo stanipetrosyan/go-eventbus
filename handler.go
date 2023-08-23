@@ -35,6 +35,31 @@ func (h *Handler) Handle(wg *sync.WaitGroup) {
 	}
 }
 
-func (h *Handler) NewHandler() *Handler {
-	return &Handler{Closed: false}
+func (h *Handler) SetContext(context DeliveryContext) *Handler {
+	h.Context = context
+	return h
+}
+
+func NewConsumer(address string, callback func(context DeliveryContext)) *Handler {
+	ch := make(chan Message)
+
+	return &Handler{
+		Ch:       ch,
+		Callback: callback,
+		Address:  address,
+		Closed:   false,
+		Type:     Consumer,
+	}
+}
+
+func NewInterceptor(address string, callback func(context DeliveryContext)) *Handler {
+	ch := make(chan Message)
+
+	return &Handler{
+		Ch:       ch,
+		Callback: callback,
+		Address:  address,
+		Closed:   false,
+		Type:     Interceptor,
+	}
 }

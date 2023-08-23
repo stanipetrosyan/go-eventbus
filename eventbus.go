@@ -18,36 +18,34 @@ type DefaultEventBus struct {
 }
 
 func (e *DefaultEventBus) Subscribe(address string, callback func(context DeliveryContext)) {
-	e.subscribe(address, callback, false)
-}
-
-func (e *DefaultEventBus) AddInBoundInterceptor(address string, callback func(context DeliveryContext)) {
-	e.subscribe(address, callback, true)
-}
-
-func (e *DefaultEventBus) subscribe(address string, callback func(context DeliveryContext), interceptor bool) {
 	_, exists := e.topics[address]
 	if !exists {
 		e.topics[address] = NewTopic(address)
 	}
 
-	ch := make(chan Message)
-
-	var channels []chan Message = []chan Message{ch}
-	var handlerType HandlerType = Consumer
-
-	if interceptor {
-		channels = e.topics[address].GetChannels()
-		handlerType = Interceptor
-	}
-
-	context := NewDeliveryContext(channels)
-	handler := Handler{Ch: ch, Callback: callback, Context: context, Address: address, Closed: false, Type: handlerType}
+	handler := NewConsumer(address, callback)
+	channels := []chan Message{handler.Ch}
+	handler = handler.SetContext(NewDeliveryContext(channels))
 
 	e.rm.Lock()
-	e.topics[address].AddHandler(&handler)
+	e.topics[address].AddHandler(handler)
 	e.rm.Unlock()
-	go e.handle(&handler)
+	go e.handle(handler)
+}
+
+func (e *DefaultEventBus) AddInBoundInterceptor(address string, callback func(context DeliveryContext)) {
+	_, exists := e.topics[address]
+	if !exists {
+		e.topics[address] = NewTopic(address)
+	}
+
+	channels := e.topics[address].GetChannels()
+	handler := NewConsumer(address, callback).SetContext(NewDeliveryContext(channels))
+
+	e.rm.Lock()
+	e.topics[address].AddHandler(handler)
+	e.rm.Unlock()
+	go e.handle(handler)
 }
 
 func (e *DefaultEventBus) handle(handler *Handler) {
