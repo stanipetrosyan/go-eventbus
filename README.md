@@ -45,20 +45,6 @@ for {
 }
 ```
 
-If you want handle once: 
-```go
-var eventbus = goeventbus.NewEventBus()
-
-address := "topic"
-
-eventbus.SubscribeOnce(address, func(dc goeventbus.DeliveryContext) {
-	fmt.Printf("This Message %s\n will be printed once time", dc.Result().Data)
-})
-
-message := goeventbus.CreateMessage().SetBody("Hi Topic")
-eventbus.Publish(address, message)
-```
-
 ## Request/Reply messaging
 
 ```go
