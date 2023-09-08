@@ -9,21 +9,19 @@ import (
 func TestAddNewConsumer(t *testing.T) {
 	topic := NewTopic("topic")
 
-	actual := Handler{Address: "topic", Type: Consumer}
-	topic.AddHandler(&actual)
+	actual := NewConsumer("topic", func(context ConsumerContext) {})
+	topic.AddConsumer(actual)
 
-	handlers := topic.GetHandlers()
-	assert.Equal(t, handlers[0].Address, actual.Address)
-	assert.Equal(t, handlers[0].Type, actual.Type)
+	handlers := topic.Consumers
+	assert.Equal(t, handlers[0].Closed(), false)
 }
 
 func TestAddNewInterceptor(t *testing.T) {
 	topic := NewTopic("topic")
 
-	actual := Handler{Address: "topic", Type: Consumer}
-	topic.AddHandler(&actual)
+	actual := NewInterceptor("topic", func(context InterceptorContext) {})
+	topic.AddInterceptor(actual)
 
-	handlers := topic.GetHandlers()
-	assert.Equal(t, handlers[0].Address, actual.Address)
-	assert.Equal(t, handlers[0].Type, actual.Type)
+	handlers := topic.Interceptors
+	assert.Equal(t, handlers[0].Closed(), false)
 }

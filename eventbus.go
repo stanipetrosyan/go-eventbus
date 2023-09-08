@@ -5,10 +5,10 @@ import (
 )
 
 type EventBus interface {
-	Subscribe(address string, callback func(context DeliveryContext))
-	AddInBoundInterceptor(address string, callback func(context DeliveryContext))
+	Subscribe(address string, callback func(context ConsumerContext))
+	AddInBoundInterceptor(address string, callback func(context InterceptorContext))
 	Publish(address string, message Message)
-	Request(address string, message Message, callback func(context DeliveryContext))
+	Request(address string, message Message, callback func(context ConsumerContext))
 }
 
 type DefaultEventBus struct {
@@ -17,38 +17,37 @@ type DefaultEventBus struct {
 	wg     sync.WaitGroup
 }
 
-func (e *DefaultEventBus) Subscribe(address string, callback func(context DeliveryContext)) {
+func (e *DefaultEventBus) Subscribe(address string, callback func(context ConsumerContext)) {
 	_, exists := e.topics[address]
 	if !exists {
 		e.topics[address] = NewTopic(address)
 	}
 
 	handler := NewConsumer(address, callback)
-	channels := []chan Message{handler.Ch}
-	handler = handler.SetContext(NewDeliveryContext(channels))
+	handler = handler.SetContext(NewConsumerContext(handler.Ch))
 
 	e.rm.Lock()
-	e.topics[address].AddHandler(handler)
+	e.topics[address].AddConsumer(handler)
 	e.rm.Unlock()
-	go e.handle(handler)
+	go e.handle(Handler(handler))
 }
 
-func (e *DefaultEventBus) AddInBoundInterceptor(address string, callback func(context DeliveryContext)) {
+func (e *DefaultEventBus) AddInBoundInterceptor(address string, callback func(context InterceptorContext)) {
 	_, exists := e.topics[address]
 	if !exists {
 		e.topics[address] = NewTopic(address)
 	}
 
 	channels := e.topics[address].GetChannels()
-	handler := NewInterceptor(address, callback).SetContext(NewDeliveryContext(channels))
+	handler := NewInterceptor(address, callback).SetContext(NewInterceptorContext(channels))
 
 	e.rm.Lock()
-	e.topics[address].AddHandler(handler)
+	e.topics[address].AddInterceptor(handler)
 	e.rm.Unlock()
 	go e.handle(handler)
 }
 
-func (e *DefaultEventBus) handle(handler *Handler) {
+func (e *DefaultEventBus) handle(handler Handler) {
 	e.wg.Add(1)
 	go handler.Handle(&e.wg)
 	e.wg.Wait()
@@ -62,14 +61,24 @@ func (e *DefaultEventBus) Publish(address string, message Message) {
 	if !exists {
 		return
 	}
-	for _, handler := range topic.GetHandlers() {
-		if !handler.Closed {
-			handler.Ch <- message
+
+	if topic.ExistInterceptor() {
+		for _, handler := range topic.GetInterceptors() {
+			if !handler.Closed() {
+				handler.Chain() <- message
+			}
+		}
+	} else {
+		for _, handler := range topic.GetConsumers() {
+			if !handler.Closed() {
+				handler.Chain() <- message
+			}
 		}
 	}
+
 }
 
-func (e *DefaultEventBus) Request(address string, message Message, callback func(context DeliveryContext)) {
+func (e *DefaultEventBus) Request(address string, message Message, callback func(context ConsumerContext)) {
 	e.rm.Lock()
 	defer e.rm.Unlock()
 
@@ -77,11 +86,11 @@ func (e *DefaultEventBus) Request(address string, message Message, callback func
 	if !exists {
 		return
 	}
-	for _, item := range topic.GetHandlers() {
-		go func(handler *Handler, data Message) {
-			if !handler.Closed {
-				handler.Ch <- data
-				callback(handler.Context)
+	for _, item := range topic.GetConsumers() {
+		go func(handler ConsumerHandler, data Message) {
+			if !handler.Closed() {
+				handler.Chain() <- data
+				callback(handler.Context())
 			}
 		}(item, message)
 	}

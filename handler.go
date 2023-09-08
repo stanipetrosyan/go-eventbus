@@ -2,64 +2,102 @@ package goeventbus
 
 import "sync"
 
-type HandlerType int
+type Handler interface {
+	Handle(wg *sync.WaitGroup)
+	Chain() chan Message
+	Closed() bool
+}
 
-const (
-	Consumer HandlerType = iota
-	Interceptor
-)
-
-type Handler struct {
+type ConsumerHandler struct {
 	Ch       chan Message
-	Callback func(context DeliveryContext)
-	Context  DeliveryContext
-	Address  string
-	Closed   bool
-	Type     HandlerType
+	Callback func(context ConsumerContext)
+	context  ConsumerContext
+	closed   bool
 }
 
-func (h *Handler) Close() {
-	close(h.Ch)
-	h.Closed = true
-}
-
-func (h *Handler) Handle(wg *sync.WaitGroup) {
+func (h ConsumerHandler) Handle(wg *sync.WaitGroup) {
 	for {
 		data, ok := <-h.Ch
 		if !ok {
+			h.closed = true
 			wg.Done()
 			return
 		}
 
-		h.Callback(h.Context.SetData(data))
+		h.Callback(h.Context().SetData(data))
 	}
 }
 
-func (h *Handler) SetContext(context DeliveryContext) *Handler {
-	h.Context = context
+func (h ConsumerHandler) Chain() chan Message {
+	return h.Ch
+}
+
+func (h ConsumerHandler) Closed() bool {
+	return h.closed
+}
+
+func (h ConsumerHandler) Context() ConsumerContext {
+	return h.context
+}
+
+func (h ConsumerHandler) SetContext(context ConsumerContext) ConsumerHandler {
+	h.context = context
 	return h
 }
 
-func NewConsumer(address string, callback func(context DeliveryContext)) *Handler {
+func NewConsumer(address string, callback func(context ConsumerContext)) ConsumerHandler {
 	ch := make(chan Message)
 
-	return &Handler{
+	return ConsumerHandler{
 		Ch:       ch,
 		Callback: callback,
-		Address:  address,
-		Closed:   false,
-		Type:     Consumer,
+		closed:   false,
 	}
 }
 
-func NewInterceptor(address string, callback func(context DeliveryContext)) *Handler {
+type InterceptorHandler struct {
+	Ch       chan Message
+	Callback func(context InterceptorContext)
+	context  InterceptorContext
+	closed   bool
+}
+
+func (h InterceptorHandler) Handle(wg *sync.WaitGroup) {
+	for {
+		data, ok := <-h.Ch
+		if !ok {
+			h.closed = true
+			wg.Done()
+			return
+		}
+
+		h.Callback(h.Context().SetData(data))
+	}
+}
+
+func (h InterceptorHandler) Chain() chan Message {
+	return h.Ch
+}
+
+func (h InterceptorHandler) Closed() bool {
+	return h.closed
+}
+
+func (h InterceptorHandler) Context() InterceptorContext {
+	return h.context
+}
+
+func (h InterceptorHandler) SetContext(context InterceptorContext) InterceptorHandler {
+	h.context = context
+	return h
+}
+
+func NewInterceptor(address string, callback func(context InterceptorContext)) InterceptorHandler {
 	ch := make(chan Message)
 
-	return &Handler{
+	return InterceptorHandler{
 		Ch:       ch,
 		Callback: callback,
-		Address:  address,
-		Closed:   false,
-		Type:     Interceptor,
+		closed:   false,
 	}
 }
