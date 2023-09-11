@@ -9,8 +9,7 @@ import (
 func TestAddNewConsumer(t *testing.T) {
 	topic := NewTopic("topic")
 
-	actual := NewConsumer("topic", func(context ConsumerContext) {})
-	topic.AddConsumer(actual)
+	topic.AddConsumer(func(context ConsumerContext) {})
 
 	handlers := topic.Consumers
 	assert.Equal(t, handlers[0].Closed(), false)
@@ -19,8 +18,7 @@ func TestAddNewConsumer(t *testing.T) {
 func TestAddNewInterceptor(t *testing.T) {
 	topic := NewTopic("topic")
 
-	actual := NewInterceptor("topic", func(context InterceptorContext) {}, NewInterceptorContext([]chan Message{}, topic))
-	topic.AddInterceptor(actual)
+	topic.AddInterceptor(func(context InterceptorContext) {})
 
 	handlers := topic.Interceptors
 	assert.Equal(t, handlers[0].Closed(), false)

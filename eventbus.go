@@ -23,10 +23,8 @@ func (e *DefaultEventBus) Subscribe(address string, callback func(context Consum
 		e.topics[address] = NewTopic(address)
 	}
 
-	handler := NewConsumer(address, callback)
-
 	e.rm.Lock()
-	e.topics[address].AddConsumer(handler)
+	handler := e.topics[address].AddConsumer(callback)
 	e.rm.Unlock()
 	go e.handle(Handler(handler))
 }
@@ -37,12 +35,8 @@ func (e *DefaultEventBus) AddInBoundInterceptor(address string, callback func(co
 		e.topics[address] = NewTopic(address)
 	}
 
-	channels := e.topics[address].GetChannels()
-	context := NewInterceptorContext(channels, e.topics[address])
-	handler := NewInterceptor(address, callback, context)
-
 	e.rm.Lock()
-	e.topics[address].AddInterceptor(handler)
+	handler := e.topics[address].AddInterceptor(callback)
 	e.rm.Unlock()
 	go e.handle(handler)
 }

@@ -42,7 +42,6 @@ func TestSubscribeHandler(t *testing.T) {
 		eventBus.Publish("newaddress", message)
 		wg.Wait()
 	})
-
 }
 
 func TestRequestReplyHandler(t *testing.T) {

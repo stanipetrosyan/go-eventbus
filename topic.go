@@ -6,13 +6,18 @@ type Topic struct {
 	Interceptors []InterceptorHandler
 }
 
-func (t *Topic) AddConsumer(handler ConsumerHandler) ConsumerHandler {
-	t.Consumers = append(t.Consumers, handler)
-	return handler
+func (t *Topic) AddConsumer(callback func(context ConsumerContext)) ConsumerHandler {
+	consumer := NewConsumer(t.Address, callback)
+	t.Consumers = append(t.Consumers, consumer)
+
+	return consumer
 }
 
-func (t *Topic) AddInterceptor(interceptor InterceptorHandler) InterceptorHandler {
+func (t *Topic) AddInterceptor(callback func(context InterceptorContext)) InterceptorHandler {
+	context := NewInterceptorContext(t)
+	interceptor := NewInterceptor(t.Address, callback, context)
 	t.Interceptors = append(t.Interceptors, interceptor)
+
 	return interceptor
 }
 
