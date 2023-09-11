@@ -19,7 +19,7 @@ func TestAddNewConsumer(t *testing.T) {
 func TestAddNewInterceptor(t *testing.T) {
 	topic := NewTopic("topic")
 
-	actual := NewInterceptor("topic", func(context InterceptorContext) {})
+	actual := NewInterceptor("topic", func(context InterceptorContext) {}, NewInterceptorContext([]chan Message{}))
 	topic.AddInterceptor(actual)
 
 	handlers := topic.Interceptors

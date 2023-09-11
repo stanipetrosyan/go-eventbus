@@ -40,11 +40,6 @@ func (h ConsumerHandler) Context() ConsumerContext {
 	return h.context
 }
 
-func (h ConsumerHandler) SetContext(context ConsumerContext) ConsumerHandler {
-	h.context = context
-	return h
-}
-
 func NewConsumer(address string, callback func(context ConsumerContext)) ConsumerHandler {
 	ch := make(chan Message)
 
@@ -52,11 +47,12 @@ func NewConsumer(address string, callback func(context ConsumerContext)) Consume
 		Ch:       ch,
 		Callback: callback,
 		closed:   false,
+		context:  NewConsumerContext(ch),
 	}
 }
 
 type InterceptorHandler struct {
-	Ch       chan Message
+	ch       chan Message
 	Callback func(context InterceptorContext)
 	context  InterceptorContext
 	closed   bool
@@ -64,7 +60,7 @@ type InterceptorHandler struct {
 
 func (h InterceptorHandler) Handle(wg *sync.WaitGroup) {
 	for {
-		data, ok := <-h.Ch
+		data, ok := <-h.ch
 		if !ok {
 			h.closed = true
 			wg.Done()
@@ -76,7 +72,7 @@ func (h InterceptorHandler) Handle(wg *sync.WaitGroup) {
 }
 
 func (h InterceptorHandler) Chain() chan Message {
-	return h.Ch
+	return h.ch
 }
 
 func (h InterceptorHandler) Closed() bool {
@@ -87,17 +83,13 @@ func (h InterceptorHandler) Context() InterceptorContext {
 	return h.context
 }
 
-func (h InterceptorHandler) SetContext(context InterceptorContext) InterceptorHandler {
-	h.context = context
-	return h
-}
-
-func NewInterceptor(address string, callback func(context InterceptorContext)) InterceptorHandler {
+func NewInterceptor(address string, callback func(context InterceptorContext), context InterceptorContext) InterceptorHandler {
 	ch := make(chan Message)
 
 	return InterceptorHandler{
-		Ch:       ch,
+		ch:       ch,
 		Callback: callback,
 		closed:   false,
+		context:  context,
 	}
 }
