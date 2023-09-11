@@ -9,27 +9,27 @@ type Handler interface {
 }
 
 type ConsumerHandler struct {
-	Ch       chan Message
-	Callback func(context ConsumerContext)
+	ch       chan Message
+	callback func(context ConsumerContext)
 	context  ConsumerContext
 	closed   bool
 }
 
 func (h ConsumerHandler) Handle(wg *sync.WaitGroup) {
 	for {
-		data, ok := <-h.Ch
+		data, ok := <-h.ch
 		if !ok {
 			h.closed = true
 			wg.Done()
 			return
 		}
 
-		h.Callback(h.Context().SetData(data))
+		h.callback(h.Context().SetData(data))
 	}
 }
 
 func (h ConsumerHandler) Chain() chan Message {
-	return h.Ch
+	return h.ch
 }
 
 func (h ConsumerHandler) Closed() bool {
@@ -44,8 +44,8 @@ func NewConsumer(address string, callback func(context ConsumerContext)) Consume
 	ch := make(chan Message)
 
 	return ConsumerHandler{
-		Ch:       ch,
-		Callback: callback,
+		ch:       ch,
+		callback: callback,
 		closed:   false,
 		context:  NewConsumerContext(ch),
 	}
