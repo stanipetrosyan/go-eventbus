@@ -28,6 +28,16 @@ func (t *Topic) GetHandlers() []Handler {
 	return t.Consumers
 }
 
+func (t *Topic) GetChannels() []chan Message {
+	chs := []chan Message{}
+
+	for _, item := range t.Consumers {
+		chs = append(chs, item.Chain())
+
+	}
+
+	return chs
+}
 func NewTopic(address string) *Topic {
 	return &Topic{Address: address, Consumers: []Handler{}, Interceptors: []Handler{}}
 }

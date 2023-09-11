@@ -40,8 +40,8 @@ type InterceptorContext struct {
 }
 
 func (d *InterceptorContext) Next() {
-	for _, item := range d.topic.GetHandlers() {
-		item.Chain() <- d.message
+	for _, item := range d.topic.GetChannels() {
+		item <- d.message
 	}
 }
 
