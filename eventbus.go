@@ -38,7 +38,7 @@ func (e *DefaultEventBus) AddInBoundInterceptor(address string, callback func(co
 	}
 
 	channels := e.topics[address].GetChannels()
-	context := NewInterceptorContext(channels)
+	context := NewInterceptorContext(channels, e.topics[address])
 	handler := NewInterceptor(address, callback, context)
 
 	e.rm.Lock()

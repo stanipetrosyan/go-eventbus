@@ -87,6 +87,25 @@ func TestInBoundInterceptorHandler(t *testing.T) {
 		eventBus.Publish("address", message)
 		wg.Wait()
 	})
+
+	t.Run("should pass message to handler created afted interceptor", func(t *testing.T) {
+		wg.Add(2)
+
+		eventBus.AddInBoundInterceptor("newAddress", func(context InterceptorContext) {
+			assert.Equal(t, "Hi There", context.Result().Data)
+			wg.Done()
+			context.Next()
+		})
+
+		eventBus.Subscribe("newAddress", func(context ConsumerContext) {
+			assert.Equal(t, "Hi There", context.Result().Data)
+			wg.Done()
+		})
+
+		message := CreateMessage().SetBody("Hi There")
+		eventBus.Publish("newAddress", message)
+		wg.Wait()
+	})
 }
 
 func TestMessageOptions(t *testing.T) {

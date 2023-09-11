@@ -37,11 +37,12 @@ func NewConsumerContext(ch chan Message) ConsumerContext {
 type InterceptorContext struct {
 	chs     []chan Message
 	message Message
+	topic   *Topic
 }
 
 func (d *InterceptorContext) Next() {
-	for _, item := range d.chs {
-		item <- d.message
+	for _, item := range d.topic.GetConsumers() {
+		item.Chain() <- d.message
 	}
 }
 
@@ -54,6 +55,6 @@ func (d InterceptorContext) SetData(msg Message) InterceptorContext {
 	return d
 }
 
-func NewInterceptorContext(ch []chan Message) InterceptorContext {
-	return InterceptorContext{chs: ch}
+func NewInterceptorContext(ch []chan Message, topic *Topic) InterceptorContext {
+	return InterceptorContext{chs: ch, topic: topic}
 }
