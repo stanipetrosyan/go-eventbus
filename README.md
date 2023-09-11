@@ -35,7 +35,7 @@ address := "topic"
 options := goeventbus.NewMessageOptions().AddHeader("header", "value")
 message := goeventbus.CreateMessage().SetBody("Hi Topic").SetOptions(options)
 
-eventbus.Subscribe(address, func(dc goeventbus.DeliveryContext) {
+eventbus.Subscribe(address, func(dc goeventbus.ConsumerContext) {
 	fmt.Printf("Message %s\n", dc.Result().Data)
 })
 
@@ -53,12 +53,12 @@ var eventbus = goeventbus.NewEventBus()
 
 address := "topic"
 
-eventbus.Subscribe(address, func(dc goeventbus.DeliveryContext) {
+eventbus.Subscribe(address, func(dc goeventbus.ConsumerContext) {
 	fmt.Printf("Message %s\n", dc.Result().Data)
 	dc.Reply("Hi from topic")
 })
 	
-eventbus.Request(address, "Hi Topic", func(dc goeventbus.DeliveryContext) {
+eventbus.Request(address, "Hi Topic", func(dc goeventbus.ConsumerContext) {
 	dc.Handle(func(message Message) {
 			fmt.Printf("Message %s\n", message.Data)
 	})
@@ -88,7 +88,7 @@ eventBus.Publish("address", message)
 
 ```go
 
-eventbus.AddInBoundInterceptor("topic1", func(context goeventbus.DeliveryContext) {
+eventbus.AddInBoundInterceptor("topic1", func(context goeventbus.InterceptonContext) {
 	if (some logic)
 		context.Next()
 })

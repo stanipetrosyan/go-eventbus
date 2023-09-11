@@ -53,7 +53,7 @@ func NewConsumer(address string, callback func(context ConsumerContext)) Consume
 
 type InterceptorHandler struct {
 	ch       chan Message
-	Callback func(context InterceptorContext)
+	callback func(context InterceptorContext)
 	context  InterceptorContext
 	closed   bool
 }
@@ -67,7 +67,7 @@ func (h InterceptorHandler) Handle(wg *sync.WaitGroup) {
 			return
 		}
 
-		h.Callback(h.Context().SetData(data))
+		h.callback(h.Context().SetData(data))
 	}
 }
 
@@ -88,7 +88,7 @@ func NewInterceptor(address string, callback func(context InterceptorContext), c
 
 	return InterceptorHandler{
 		ch:       ch,
-		Callback: callback,
+		callback: callback,
 		closed:   false,
 		context:  context,
 	}

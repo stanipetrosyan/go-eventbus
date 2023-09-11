@@ -56,20 +56,11 @@ func (e *DefaultEventBus) Publish(address string, message Message) {
 		return
 	}
 
-	if topic.ExistInterceptor() {
-		for _, handler := range topic.GetInterceptors() {
-			if !handler.Closed() {
-				handler.Chain() <- message
-			}
-		}
-	} else {
-		for _, handler := range topic.GetConsumers() {
-			if !handler.Closed() {
-				handler.Chain() <- message
-			}
+	for _, handler := range topic.GetHandlers() {
+		if !handler.Closed() {
+			handler.Chain() <- message
 		}
 	}
-
 }
 
 func (e *DefaultEventBus) Request(address string, message Message, callback func(context ConsumerContext)) {
@@ -80,11 +71,11 @@ func (e *DefaultEventBus) Request(address string, message Message, callback func
 	if !exists {
 		return
 	}
-	for _, item := range topic.GetConsumers() {
-		go func(handler ConsumerHandler, data Message) {
+	for _, item := range topic.GetHandlers() {
+		go func(handler Handler, data Message) {
 			if !handler.Closed() {
 				handler.Chain() <- data
-				callback(handler.Context())
+				callback(NewConsumerContext(handler.Chain()))
 			}
 		}(item, message)
 	}

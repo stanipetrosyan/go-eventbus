@@ -2,8 +2,8 @@ package goeventbus
 
 type Topic struct {
 	Address      string
-	Consumers    []ConsumerHandler
-	Interceptors []InterceptorHandler
+	Consumers    []Handler
+	Interceptors []Handler
 }
 
 func (t *Topic) AddConsumer(callback func(context ConsumerContext)) ConsumerHandler {
@@ -21,28 +21,13 @@ func (t *Topic) AddInterceptor(callback func(context InterceptorContext)) Interc
 	return interceptor
 }
 
-func (t *Topic) GetConsumers() []ConsumerHandler {
+func (t *Topic) GetHandlers() []Handler {
+	if len(t.Interceptors) > 0 {
+		return t.Interceptors
+	}
 	return t.Consumers
 }
 
-func (t *Topic) GetInterceptors() []InterceptorHandler {
-	return t.Interceptors
-}
-
-func (t *Topic) ExistInterceptor() bool {
-	return len(t.Interceptors) > 0
-}
-
-func (t *Topic) GetChannels() []chan Message {
-	chs := []chan Message{}
-
-	for _, item := range t.Consumers {
-		chs = append(chs, item.Chain())
-	}
-
-	return chs
-}
-
 func NewTopic(address string) *Topic {
-	return &Topic{Address: address, Consumers: []ConsumerHandler{}, Interceptors: []InterceptorHandler{}}
+	return &Topic{Address: address, Consumers: []Handler{}, Interceptors: []Handler{}}
 }
