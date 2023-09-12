@@ -1,4 +1,4 @@
-module github.com/StaniPetrosyan/go-eventbus
+module github.com/stanipetrosyan/go-eventbus
 
 go 1.21
 

@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	goeventbus "github.com/StaniPetrosyan/go-eventbus"
+	goeventbus "github.com/stanipetrosyan/go-eventbus"
 )
 
 var eventbus = goeventbus.NewEventBus()
