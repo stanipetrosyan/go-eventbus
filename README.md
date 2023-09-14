@@ -1,4 +1,5 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/stanipetrosyan/go-eventbus)](https://goreportcard.com/report/github.com/stanipetrosyan/go-eventbus)
+[![codecov](https://codecov.io/gh/stanipetrosyan/go-eventbus/graph/badge.svg?token=YAGXYA64E6)](https://codecov.io/gh/stanipetrosyan/go-eventbus)
 [![Go Reference](https://pkg.go.dev/badge/github.com/stanipetrosyan/go-eventbus.svg)](https://pkg.go.dev/github.com/stanipetrosyan/go-eventbus)
 ![workflow](https://github.com/StaniPetrosyan/go-eventbus/actions/workflows/test.yml/badge.svg)
 
