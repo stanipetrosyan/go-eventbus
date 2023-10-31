@@ -3,6 +3,9 @@ package goeventbus
 type Publisher struct {
 }
 
-func (p *Publisher) Publish() {
+func New() Publisher {
+	return Publisher{}
+}
 
+func (p *Publisher) Publish() {
 }
