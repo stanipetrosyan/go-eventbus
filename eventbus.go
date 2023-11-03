@@ -5,6 +5,7 @@ import (
 )
 
 type EventBus interface {
+	Channel(adress string) Channel
 	Subscribe(address string, callback func(context ConsumerContext))
 	AddInBoundInterceptor(address string, callback func(context InterceptorContext))
 	Publish(address string, message Message)
@@ -12,9 +13,18 @@ type EventBus interface {
 }
 
 type DefaultEventBus struct {
-	topics map[string]*Topic
-	rm     sync.RWMutex
-	wg     sync.WaitGroup
+	channels map[string]Channel
+	topics   map[string]*Topic
+	rm       sync.RWMutex
+	wg       sync.WaitGroup
+}
+
+func (e *DefaultEventBus) Channel(address string) Channel {
+	_, exists := e.channels[address]
+	if !exists {
+		e.channels[address] = NewChannel(address)
+	}
+	return e.channels[address]
 }
 
 func (e *DefaultEventBus) Subscribe(address string, callback func(context ConsumerContext)) {
@@ -83,6 +93,7 @@ func (e *DefaultEventBus) Request(address string, message Message, callback func
 
 func NewEventBus() EventBus {
 	return &DefaultEventBus{
-		topics: map[string]*Topic{},
+		channels: map[string]Channel{},
+		topics:   map[string]*Topic{},
 	}
 }

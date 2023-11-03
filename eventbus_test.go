@@ -25,6 +25,19 @@ func TestSubscribeHandler(t *testing.T) {
 		wg.Wait()
 	})
 
+	t.Run("should handle a message2", func(t *testing.T) {
+		wg.Add(1)
+
+		sub := eventBus.Channel("my-channel").Subscriber()
+
+		sub.Listen(func() {
+			wg.Done()
+		})
+
+		eventBus.Channel("my-channel").Publisher().Publish()
+		wg.Wait()
+	})
+
 	t.Run("should handle message for more of one handlers", func(t *testing.T) {
 		wg.Add(2)
 
