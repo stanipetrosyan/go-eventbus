@@ -26,11 +26,17 @@ func TestSubscribeHandler(t *testing.T) {
 	})
 
 	t.Run("should handle a message2", func(t *testing.T) {
-		wg.Add(1)
+		wg.Add(3)
 
-		sub := eventBus.Channel("my-channel").Subscriber()
+		eventBus.Channel("my-channel").Subscriber().Listen(func() {
+			wg.Done()
+		})
 
-		sub.Listen(func() {
+		eventBus.Channel("my-channel").Subscriber().Listen(func() {
+			wg.Done()
+		})
+
+		eventBus.Channel("my-channel").Subscriber().Listen(func() {
 			wg.Done()
 		})
 
