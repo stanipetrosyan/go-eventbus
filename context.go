@@ -4,6 +4,18 @@ type Context interface {
 	Result() Message
 }
 
+type defaultContext struct {
+	message Message
+}
+
+func (c defaultContext) Result() Message {
+	return c.message
+}
+
+func NewConsumerContextWithMessage(message Message) Context {
+	return defaultContext{message: message}
+}
+
 type ConsumerContext struct {
 	Ch      chan Message
 	message Message
@@ -13,7 +25,7 @@ func (d *ConsumerContext) Reply(data any) {
 	d.Ch <- Message{Data: data}
 }
 
-func (d *ConsumerContext) Result() Message {
+func (d ConsumerContext) Result() Message {
 	return d.message
 }
 

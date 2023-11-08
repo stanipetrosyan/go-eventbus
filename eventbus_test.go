@@ -7,10 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var wg sync.WaitGroup
-
 func TestSubscribeHandler(t *testing.T) {
 	var eventBus = NewEventBus()
+	var wg sync.WaitGroup
 
 	t.Run("should handle a message", func(t *testing.T) {
 		wg.Add(1)
@@ -25,21 +24,11 @@ func TestSubscribeHandler(t *testing.T) {
 		wg.Wait()
 	})
 
-	t.Run("should handle a message2", func(t *testing.T) {
-		wg.Add(3)
+	t.Run("should handle a message using channels", func(t *testing.T) {
+		wg.Add(1)
 
-		eventBus.Channel("my-channel").Subscriber().Listen(func(message Message) {
-			assert.Equal(t, "Hi There", message.Data)
-			wg.Done()
-		})
-
-		eventBus.Channel("my-channel").Subscriber().Listen(func(message Message) {
-			assert.Equal(t, "Hi There", message.Data)
-			wg.Done()
-		})
-
-		eventBus.Channel("my-channel").Subscriber().Listen(func(message Message) {
-			assert.Equal(t, "Hi There", message.Data)
+		eventBus.Channel("my-channel").Subscriber().Listen(func(context Context) {
+			assert.Equal(t, "Hi There", context.Result().Data)
 			wg.Done()
 		})
 
@@ -69,6 +58,7 @@ func TestSubscribeHandler(t *testing.T) {
 
 func TestRequestReplyHandler(t *testing.T) {
 	var eventBus = NewEventBus()
+	var wg sync.WaitGroup
 
 	t.Run("should send a request and reply", func(t *testing.T) {
 		wg.Add(1)
@@ -90,6 +80,7 @@ func TestRequestReplyHandler(t *testing.T) {
 
 func TestInBoundInterceptorHandler(t *testing.T) {
 	var eventBus = NewEventBus()
+	var wg sync.WaitGroup
 
 	t.Run("should pass interceptor handler", func(t *testing.T) {
 		wg.Add(2)
@@ -156,6 +147,7 @@ func TestInBoundInterceptorHandler(t *testing.T) {
 
 func TestMessageOptions(t *testing.T) {
 	var eventBus = NewEventBus()
+	var wg sync.WaitGroup
 
 	wg.Add(1)
 	eventBus.Subscribe("address", func(context ConsumerContext) {
