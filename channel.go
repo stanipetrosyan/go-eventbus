@@ -8,8 +8,8 @@ type Channel interface {
 
 type defaultChannel struct {
 	address string
-	ch      chan string
-	chs     []chan string
+	ch      chan Message
+	chs     []chan Message
 }
 
 func (c *defaultChannel) Listen() {
@@ -34,15 +34,15 @@ func (c *defaultChannel) Publisher() Publisher {
 }
 
 func (c *defaultChannel) Subscriber() Subscriber {
-	ch := make(chan string)
+	ch := make(chan Message)
 	c.chs = append(c.chs, ch)
 
 	return NewSubscriber(ch)
 }
 
 func NewChannel(address string) Channel {
-	ch := make(chan string)
-	channel := defaultChannel{address: address, ch: ch, chs: []chan string{}}
+	ch := make(chan Message)
+	channel := defaultChannel{address: address, ch: ch, chs: []chan Message{}}
 	go channel.Listen()
 	return &channel
 }

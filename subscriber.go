@@ -1,14 +1,14 @@
 package goeventbus
 
 type Subscriber interface {
-	Listen(consumer func())
+	Listen(consumer func(message Message))
 }
 
 type defaultSubscriber struct {
-	ch chan string
+	ch chan Message
 }
 
-func (s defaultSubscriber) Listen(consumer func()) {
+func (s defaultSubscriber) Listen(consumer func(message Message)) {
 	go func() {
 		for {
 			data, ok := <-s.ch
@@ -16,13 +16,11 @@ func (s defaultSubscriber) Listen(consumer func()) {
 				return
 			}
 
-			println(data)
-
-			consumer()
+			consumer(data)
 		}
 	}()
 }
 
-func NewSubscriber(ch chan string) Subscriber {
+func NewSubscriber(ch chan Message) Subscriber {
 	return defaultSubscriber{ch: ch}
 }

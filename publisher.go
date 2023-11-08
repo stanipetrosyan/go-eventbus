@@ -1,17 +1,17 @@
 package goeventbus
 
 type Publisher interface {
-	Publish()
+	Publish(message Message)
 }
 
 type defaultPublisher struct {
-	ch chan string
+	ch chan Message
 }
 
-func NewPublisher(ch chan string) Publisher {
+func NewPublisher(ch chan Message) Publisher {
 	return defaultPublisher{ch: ch}
 }
 
-func (p defaultPublisher) Publish() {
-	p.ch <- "Hello World"
+func (p defaultPublisher) Publish(message Message) {
+	p.ch <- message
 }

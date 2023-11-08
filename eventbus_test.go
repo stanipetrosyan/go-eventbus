@@ -28,19 +28,23 @@ func TestSubscribeHandler(t *testing.T) {
 	t.Run("should handle a message2", func(t *testing.T) {
 		wg.Add(3)
 
-		eventBus.Channel("my-channel").Subscriber().Listen(func() {
+		eventBus.Channel("my-channel").Subscriber().Listen(func(message Message) {
+			assert.Equal(t, "Hi There", message.Data)
 			wg.Done()
 		})
 
-		eventBus.Channel("my-channel").Subscriber().Listen(func() {
+		eventBus.Channel("my-channel").Subscriber().Listen(func(message Message) {
+			assert.Equal(t, "Hi There", message.Data)
 			wg.Done()
 		})
 
-		eventBus.Channel("my-channel").Subscriber().Listen(func() {
+		eventBus.Channel("my-channel").Subscriber().Listen(func(message Message) {
+			assert.Equal(t, "Hi There", message.Data)
 			wg.Done()
 		})
 
-		eventBus.Channel("my-channel").Publisher().Publish()
+		message := CreateMessage().SetBody("Hi There")
+		eventBus.Channel("my-channel").Publisher().Publish(message)
 		wg.Wait()
 	})
 
