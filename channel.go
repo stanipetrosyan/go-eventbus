@@ -1,7 +1,6 @@
 package goeventbus
 
 type Channel interface {
-	Register() Channel
 	Publisher() Publisher
 	Subscriber() Subscriber
 }
@@ -25,10 +24,6 @@ func (c *defaultChannel) Listen() {
 	}
 }
 
-func (c *defaultChannel) Register() Channel {
-	return c
-}
-
 func (c *defaultChannel) Publisher() Publisher {
 	return NewPublisher(c.ch)
 }
@@ -44,5 +39,6 @@ func NewChannel(address string) Channel {
 	ch := make(chan Message)
 	channel := defaultChannel{address: address, ch: ch, chs: []chan Message{}}
 	go channel.Listen()
+
 	return &channel
 }
