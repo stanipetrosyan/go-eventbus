@@ -3,12 +3,14 @@ package goeventbus
 type Channel interface {
 	Publisher() Publisher
 	Subscriber() Subscriber
+	Processor(predicate func(message Message) bool) Channel
 }
 
 type defaultChannel struct {
-	address string
-	ch      chan Message
-	chs     []chan Message
+	address   string
+	ch        chan Message
+	chs       []chan Message
+	predicate func(message Message) bool
 }
 
 func (c *defaultChannel) Listen() {
@@ -18,9 +20,12 @@ func (c *defaultChannel) Listen() {
 			return
 		}
 
-		for _, item := range c.chs {
-			item <- data
+		if c.predicate(data) {
+			for _, item := range c.chs {
+				item <- data
+			}
 		}
+
 	}
 }
 
@@ -35,9 +40,16 @@ func (c *defaultChannel) Subscriber() Subscriber {
 	return NewSubscriber(ch)
 }
 
+func (c *defaultChannel) Processor(predicate func(message Message) bool) Channel {
+	c.predicate = predicate
+
+	return c
+}
+
 func NewChannel(address string) Channel {
 	ch := make(chan Message)
-	channel := defaultChannel{address: address, ch: ch, chs: []chan Message{}}
+	predicate := func(message Message) bool { return true }
+	channel := defaultChannel{address: address, ch: ch, chs: []chan Message{}, predicate: predicate}
 	go channel.Listen()
 
 	return &channel

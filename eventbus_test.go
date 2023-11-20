@@ -101,6 +101,24 @@ func TestInBoundInterceptorHandler(t *testing.T) {
 		wg.Wait()
 	})
 
+	t.Run("should pass interceptor handler2", func(t *testing.T) {
+		wg.Add(2)
+
+		eventBus.Channel("my-channel").Subscriber().Listen(func(context Context) {
+			assert.Equal(t, "Hi There", context.Result().Data)
+			wg.Done()
+		})
+
+		eventBus.Channel("my-channel").Processor(func(message Message) bool {
+			wg.Done()
+			return message.Data == "Hi There"
+		})
+
+		message := CreateMessage().SetBody("Hi There")
+		eventBus.Channel("my-channel").Publisher().Publish(message)
+		wg.Wait()
+	})
+
 	t.Run("should pass message to handler created afted interceptor", func(t *testing.T) {
 		wg.Add(2)
 
