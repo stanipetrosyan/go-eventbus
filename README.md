@@ -9,14 +9,13 @@
 
 This is a simple implementation of an event bus in golang. Actually support:
 * publish/subscribe messaging.
-* request/reply messaging
 
 ## Get Started
 
 To start use eventbus in your project, you can run the following command. 
 
 ```
-go get github.com/StaniPetrosyan/go-eventbus
+go get github.com/stanipetrosyan/go-eventbus
 ```
 
 And import 
@@ -37,34 +36,14 @@ address := "topic"
 options := goeventbus.NewMessageOptions().AddHeader("header", "value")
 message := goeventbus.CreateMessage().SetBody("Hi Topic").SetOptions(options)
 
-eventbus.Subscribe(address, func(dc goeventbus.ConsumerContext) {
+eventbus.Channel(address).Subscriber().Listen(func(dc goeventbus.Context) {
 	fmt.Printf("Message %s\n", dc.Result().Data)
 })
 
 for {
-	eventbus.Publish(address, message)
+	eventbus.Channel(address).Publisher().Publish(message)
 	time.Sleep(time.Second)
 }
-```
-
-## Request/Reply messaging
-
-```go
-
-var eventbus = goeventbus.NewEventBus()
-
-address := "topic"
-
-eventbus.Subscribe(address, func(dc goeventbus.ConsumerContext) {
-	fmt.Printf("Message %s\n", dc.Result().Data)
-	dc.Reply("Hi from topic")
-})
-	
-eventbus.Request(address, "Hi Topic", func(dc goeventbus.ConsumerContext) {
-	dc.Handle(func(message Message) {
-			fmt.Printf("Message %s\n", message.Data)
-	})
-})
 ```
 
 ## Message
@@ -83,16 +62,15 @@ message := goeventbus.CreateMessage()
 
 message.SetOptions(options)
 
-eventBus.Publish("address", message)
+eventBus.Channel("address").Publisher().Publish(message)
 ```
 
-## In Bound Interceptor 
+## Processor
 
 ```go
 
-eventbus.AddInBoundInterceptor("topic1", func(context goeventbus.InterceptonContext) {
-	if (some logic)
-		context.Next()
+eventbus.Channel("topic1").Processor(func(message goeventbus.Message) bool {
+	return logic
 })
 ```
 
