@@ -21,12 +21,14 @@ go get github.com/stanipetrosyan/go-eventbus
 And import 
 ``` go
 import (
-	goeventbus "github.com/StaniPetrosyan/go-eventbus"
+	goeventbus "github.com/stanipetrosyan/go-eventbus"
 )
 
 ```
 
 ## Publish/Subscribe
+
+Simple example of publish/subscribe pattern.
 
 ```go
 
@@ -40,10 +42,7 @@ eventbus.Channel(address).Subscriber().Listen(func(dc goeventbus.Context) {
 	fmt.Printf("Message %s\n", dc.Result().Data)
 })
 
-for {
-	eventbus.Channel(address).Publisher().Publish(message)
-	time.Sleep(time.Second)
-}
+eventbus.Channel(address).Publisher().Publish(message)
 ```
 
 ## Message
@@ -66,6 +65,8 @@ eventBus.Channel("address").Publisher().Publish(message)
 ```
 
 ## Processor
+
+A processor works like a middleware, in fact forwards messages only if the predicate is satisfied. The method accepts a function with message and return must return a boolean.
 
 ```go
 
