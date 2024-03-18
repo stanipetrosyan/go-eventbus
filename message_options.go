@@ -38,5 +38,5 @@ func (h Headers) Contains(key string) bool {
 }
 
 func NewHeaders() Headers {
-	return Headers{}
+	return Headers{headers: map[string]string{}}
 }
