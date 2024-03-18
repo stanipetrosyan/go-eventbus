@@ -72,11 +72,13 @@ func TestMessageOptions(t *testing.T) {
 
 	wg.Add(1)
 	eventBus.Channel("address").Subscriber().Listen(func(context Context) {
-		assert.Equal(t, "value", context.Result().Options.Header("key"))
+		assert.True(t, context.Result().Options.Headers().Contains("key"))
+		assert.Equal(t, "value", context.Result().Options.Headers().Header("key"))
 		wg.Done()
 	})
 
-	message := CreateMessage().SetBody("Hi There").SetOptions(NewMessageOptions().AddHeader("key", "value"))
+	options := NewMessageOptions().SetHeaders(NewHeaders().Add("key", "value"))
+	message := CreateMessage().SetBody("Hi There").SetOptions(options)
 	eventBus.Channel("address").Publisher().Publish(message)
 	wg.Wait()
 }

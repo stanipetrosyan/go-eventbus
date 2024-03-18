@@ -44,7 +44,8 @@ func main() {
 }
 
 func publishTo(address string, data string) {
-	options := goeventbus.NewMessageOptions().AddHeader("header", "value")
+
+	options := goeventbus.NewMessageOptions().SetHeaders(goeventbus.NewHeaders().Add("header", "value"))
 	message := goeventbus.CreateMessage().SetBody(data).SetOptions(options)
 	for {
 		eventbus.Channel(address).Publisher().Publish(message)
