@@ -10,7 +10,7 @@ type defaultChannel struct {
 	address   string
 	ch        chan Message
 	chs       []chan Message
-	predicate func(message Message) bool
+	processor Processor
 }
 
 func (c *defaultChannel) Listen() {
@@ -20,7 +20,7 @@ func (c *defaultChannel) Listen() {
 			return
 		}
 
-		if c.predicate(data) {
+		if c.processor.forward(data) {
 			for _, item := range c.chs {
 				item <- data
 			}
@@ -41,15 +41,14 @@ func (c *defaultChannel) Subscriber() Subscriber {
 }
 
 func (c *defaultChannel) Processor(predicate func(message Message) bool) Channel {
-	c.predicate = predicate
+	c.processor = NewProcessorWithPredicate(predicate)
 
 	return c
 }
 
 func NewChannel(address string) Channel {
 	ch := make(chan Message)
-	predicate := func(message Message) bool { return true }
-	channel := defaultChannel{address: address, ch: ch, chs: []chan Message{}, predicate: predicate}
+	channel := defaultChannel{address: address, ch: ch, chs: []chan Message{}, processor: NewProcessor()}
 	go channel.Listen()
 
 	return &channel
