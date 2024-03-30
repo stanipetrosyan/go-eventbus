@@ -20,7 +20,7 @@ func main() {
 	})
 
 	eventbus.Channel("topic1").Processor(func(message goeventbus.Message) bool {
-		return message.Data == "Hi topic 1"
+		return message.Options.Headers().Contains("header")
 	})
 
 	eventbus.Channel("topic2").Subscriber().Listen(func(dc goeventbus.Context) {
@@ -49,10 +49,10 @@ func publishTo(address string, data string) {
 	message := goeventbus.CreateMessage().SetBody(data).SetOptions(options)
 	for {
 		eventbus.Channel(address).Publisher().Publish(message)
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second)
 	}
 }
 
 func printMessage(data goeventbus.Message) {
-	fmt.Printf("Message %s, Headers %s\n", data.Data, data.Options)
+	fmt.Printf("Message %s, Headers %s\n", data.Data, data.Options.Headers())
 }

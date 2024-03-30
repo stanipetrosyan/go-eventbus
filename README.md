@@ -71,7 +71,7 @@ A processor works like a middleware, in fact forwards messages only if the predi
 ```go
 
 eventbus.Channel("topic1").Processor(func(message goeventbus.Message) bool {
-	return message.
+	return message.Options.Headers().Contains("header")
 })
 ```
 
