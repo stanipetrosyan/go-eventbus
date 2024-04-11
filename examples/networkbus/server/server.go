@@ -8,5 +8,5 @@ var eventbus = goeventbus.NewEventBus()
 
 func main() {
 	network := goeventbus.NewNetworkBus(eventbus, "localhost", "/bus")
-	network.Server()
+	network.Server().Listen()
 }

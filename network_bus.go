@@ -1,8 +1,8 @@
 package goeventbus
 
 type NetworkBus interface {
-	Server()
-	Client()
+	Server() Server
+	Client() Client
 }
 
 type defaultNetworkBus struct {
@@ -15,6 +15,10 @@ func NewNetworkBus(bus EventBus, address, path string) NetworkBus {
 	return defaultNetworkBus{localBus: bus, address: address, path: path}
 }
 
-func (b defaultNetworkBus) Server() {}
+func (b defaultNetworkBus) Server() Server {
+	return NewServer()
+}
 
-func (b defaultNetworkBus) Client() {}
+func (b defaultNetworkBus) Client() Client {
+	return NewClient()
+}
