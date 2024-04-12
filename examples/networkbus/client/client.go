@@ -9,5 +9,5 @@ var eventbus = goeventbus.NewEventBus()
 func main() {
 	network := goeventbus.NewNetworkBus(eventbus, "localhost", "/bus")
 
-	network.Client().Connect()
+	network.Client("localhost", "/bus").Connect()
 }
