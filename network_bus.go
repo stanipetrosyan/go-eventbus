@@ -20,5 +20,5 @@ func (b defaultNetworkBus) Server() Server {
 }
 
 func (b defaultNetworkBus) Client() Client {
-	return NewClient()
+	return NewClient(b.address, b.path, b.localBus)
 }

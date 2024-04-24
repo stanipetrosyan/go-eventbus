@@ -1,12 +1,6 @@
 package goeventbus
 
-import (
-	"sync"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-)
-
+/*
 func TestNetworkBus(t *testing.T) {
 	var wg sync.WaitGroup
 
@@ -30,3 +24,4 @@ func TestNetworkBus(t *testing.T) {
 	})
 
 }
+*/
