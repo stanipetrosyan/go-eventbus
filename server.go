@@ -6,19 +6,22 @@ import (
 )
 
 type Server interface {
-	Listen()
+	Listen() (Server, error)
+	Publish(channel string)
 }
 
 type tcpServer struct {
-	address, path string
+	address string
+	path    string
+	clients []net.Conn
 }
 
-func (s tcpServer) Listen() {
+func (s *tcpServer) Listen() (Server, error) {
 
 	listener, err := net.Listen("tcp", s.address)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return
+		return nil, err
 	}
 
 	defer listener.Close()
@@ -30,12 +33,23 @@ func (s tcpServer) Listen() {
 			continue
 		}
 
+		s.clients = append(s.clients, conn)
+
 		handleClient(conn)
 	}
 }
 
+func (s *tcpServer) Publish(channel string) {
+	for _, client := range s.clients {
+		_, err := client.Write([]byte(channel))
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+	}
+}
+
 func NewServer(address, path string) Server {
-	return tcpServer{address: address, path: path}
+	return &tcpServer{address: address, path: path, clients: []net.Conn{}}
 }
 
 func handleClient(conn net.Conn) {
