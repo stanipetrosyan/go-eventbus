@@ -1,13 +1,14 @@
 package goeventbus
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 )
 
 type Server interface {
 	Listen() (Server, error)
-	Publish(channel string)
+	Publish(channel string, message Message)
 }
 
 type tcpServer struct {
@@ -39,9 +40,12 @@ func (s *tcpServer) Listen() (Server, error) {
 	}
 }
 
-func (s *tcpServer) Publish(channel string) {
+func (s *tcpServer) Publish(channel string, message Message) {
+	var encoder *json.Encoder
 	for _, client := range s.clients {
-		_, err := client.Write([]byte(channel))
+		encoder = json.NewEncoder(client)
+		err := encoder.Encode(Request{Channel: channel, Message: message})
+
 		if err != nil {
 			fmt.Println("Error:", err)
 		}

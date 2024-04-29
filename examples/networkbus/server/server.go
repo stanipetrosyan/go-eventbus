@@ -15,7 +15,8 @@ func main() {
 	go server.Listen()
 
 	for {
-		server.Publish("hello")
+		message := goeventbus.CreateMessage().SetBody("Hello World!")
+		server.Publish("hello", message)
 		time.Sleep(time.Second * 2)
 	}
 }

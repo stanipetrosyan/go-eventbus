@@ -1,6 +1,7 @@
 package goeventbus
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"sync"
@@ -19,29 +20,23 @@ func TestServer(t *testing.T) {
 	conn, err := net.Dial("tcp", "localhost:8082")
 	assert.Nil(t, err)
 
-	//defer conn.Close()
-
-	buffer := make([]byte, 1024)
-
 	go func() {
-		println("reading")
-		n, err := conn.Read(buffer)
+		var request Request
+		d := json.NewDecoder(conn)
+		err := d.Decode(&request)
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
 		}
-
-		/*if err == io.EOF {
-			t.FailNow()
-		} */
-
-		println(string(buffer[:n]))
-		assert.Equal(t, "my-channel", string(buffer[:n]))
+		assert.Equal(t, "my-channel", request.Channel)
+		assert.Equal(t, "Hello there", request.Message.Data)
 		wg.Done()
 
 	}()
 
-	server.Publish("my-channel")
+	msg := CreateMessage().SetBody("Hello there")
+
+	server.Publish("my-channel", msg)
 	wg.Wait()
 
 }
