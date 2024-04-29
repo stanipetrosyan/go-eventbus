@@ -1,6 +1,7 @@
 package goeventbus
 
 import (
+	"encoding/json"
 	"net"
 	"sync"
 	"testing"
@@ -13,7 +14,7 @@ func TestClient(t *testing.T) {
 	var eventbus EventBus = NewEventBus()
 
 	eventbus.Channel("channel").Subscriber().Listen(func(context Context) {
-		println(context.Result().Data)
+		assert.Equal(t, "Hello there", context.Result().Data)
 		wg.Done()
 	})
 
@@ -27,7 +28,9 @@ func TestClient(t *testing.T) {
 			conn, err := listener.Accept()
 			assert.Nil(t, err)
 
-			conn.Write([]byte("channel"))
+			msg := Request{Channel: "channel", Message: CreateMessage().SetBody("Hello there")}
+			json.NewEncoder(conn).Encode(msg)
+
 		}
 	}()
 

@@ -1,6 +1,7 @@
 package goeventbus
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 )
@@ -15,6 +16,11 @@ type tcpClient struct {
 	eventbus EventBus
 }
 
+type Request struct {
+	Channel string  `json:"channel"`
+	Message Message `json:"message"`
+}
+
 func (s *tcpClient) Connect() {
 	var conn net.Conn
 	var err error
@@ -23,17 +29,19 @@ func (s *tcpClient) Connect() {
 		conn, err = net.Dial("tcp", s.address)
 	}
 
-	buffer := make([]byte, 1024)
 	for {
-		n, err := conn.Read(buffer)
+		var msg Request
+		d := json.NewDecoder(conn)
+		err = d.Decode(&msg)
+
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
 		}
 
-		channel := string(buffer[:n])
+		channel := msg.Channel
 
-		message := CreateMessage().SetBody("Test")
+		message := msg.Message
 		s.eventbus.Channel(channel).Publisher().Publish(message)
 
 	}
