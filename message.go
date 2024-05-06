@@ -1,14 +1,8 @@
 package goeventbus
 
-import "encoding/json"
-
 type Message struct {
 	Data    interface{}
 	Options MessageOptions
-}
-
-func (m Message) ToJson() ([]byte, error) {
-	return json.Marshal(m.Data)
 }
 
 func CreateMessage() Message {
