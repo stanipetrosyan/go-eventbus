@@ -20,7 +20,7 @@ func TestClient(t *testing.T) {
 
 	wg.Add(1)
 
-	listener, err := net.Listen("tcp", "localhost:8082")
+	listener, err := net.Listen("tcp", "localhost:8083")
 	assert.Nil(t, err)
 
 	go func() {
@@ -34,7 +34,7 @@ func TestClient(t *testing.T) {
 		}
 	}()
 
-	client := NewClient("localhost:8082", "/", eventbus)
+	client := NewClient("localhost:8083", eventbus)
 	go client.Connect()
 
 	wg.Wait()

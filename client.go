@@ -12,7 +12,6 @@ type Client interface {
 
 type tcpClient struct {
 	address  string
-	path     string
 	eventbus EventBus
 }
 
@@ -47,6 +46,6 @@ func (s *tcpClient) Connect() {
 	}
 }
 
-func NewClient(address, path string, eventbus EventBus) Client {
-	return &tcpClient{address: address, path: path, eventbus: eventbus}
+func NewClient(address string, eventbus EventBus) Client {
+	return &tcpClient{address: address, eventbus: eventbus}
 }

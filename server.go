@@ -13,12 +13,10 @@ type Server interface {
 
 type tcpServer struct {
 	address string
-	path    string
 	clients []net.Conn
 }
 
 func (s *tcpServer) Listen() (Server, error) {
-
 	listener, err := net.Listen("tcp", s.address)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -50,6 +48,6 @@ func (s *tcpServer) Publish(channel string, message Message) {
 	}
 }
 
-func NewServer(address, path string) Server {
-	return &tcpServer{address: address, path: path, clients: []net.Conn{}}
+func NewServer(address string) Server {
+	return &tcpServer{address: address, clients: []net.Conn{}}
 }

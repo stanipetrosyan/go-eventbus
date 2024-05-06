@@ -8,17 +8,16 @@ type NetworkBus interface {
 type defaultNetworkBus struct {
 	localBus EventBus
 	address  string
-	path     string
 }
 
 func NewNetworkBus(bus EventBus, address, path string) NetworkBus {
-	return defaultNetworkBus{localBus: bus, address: address, path: path}
+	return defaultNetworkBus{localBus: bus, address: address}
 }
 
 func (b defaultNetworkBus) Server() Server {
-	return NewServer(b.address, b.path)
+	return NewServer(b.address)
 }
 
 func (b defaultNetworkBus) Client() Client {
-	return NewClient(b.address, b.path, b.localBus)
+	return NewClient(b.address, b.localBus)
 }
