@@ -30,7 +30,6 @@ func TestClient(t *testing.T) {
 
 			msg := Request{Channel: "channel", Message: CreateMessage().SetBody("Hello there")}
 			json.NewEncoder(conn).Encode(msg)
-
 		}
 	}()
 

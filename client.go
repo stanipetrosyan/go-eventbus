@@ -28,6 +28,8 @@ func (s *tcpClient) Connect() {
 		conn, err = net.Dial("tcp", s.address)
 	}
 
+	defer conn.Close()
+
 	for {
 		var msg Request
 		d := json.NewDecoder(conn)
