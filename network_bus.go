@@ -10,7 +10,7 @@ type defaultNetworkBus struct {
 	address  string
 }
 
-func NewNetworkBus(bus EventBus, address, path string) NetworkBus {
+func NewNetworkBus(bus EventBus, address string) NetworkBus {
 	return defaultNetworkBus{localBus: bus, address: address}
 }
 

@@ -4,11 +4,11 @@ type EventBus interface {
 	Channel(adress string) Channel
 }
 
-type DefaultEventBus struct {
+type defaultEventBus struct {
 	channels map[string]Channel
 }
 
-func (e *DefaultEventBus) Channel(address string) Channel {
+func (e *defaultEventBus) Channel(address string) Channel {
 	_, exists := e.channels[address]
 	if !exists {
 		e.channels[address] = NewChannel(address)
@@ -17,7 +17,7 @@ func (e *DefaultEventBus) Channel(address string) Channel {
 }
 
 func NewEventBus() EventBus {
-	return &DefaultEventBus{
+	return &defaultEventBus{
 		channels: map[string]Channel{},
 	}
 }

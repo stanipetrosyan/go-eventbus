@@ -10,7 +10,7 @@ var eventbus = goeventbus.NewEventBus()
 
 func main() {
 
-	network := goeventbus.NewNetworkBus(eventbus, "localhost:9000", "/bus")
+	network := goeventbus.NewNetworkBus(eventbus, "localhost:9000")
 	eventbus.Channel("hello").Subscriber().Listen(func(context goeventbus.Context) {
 		printMessage(context.Result())
 	})
