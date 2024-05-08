@@ -75,6 +75,14 @@ eventbus.Channel("topic1").Processor(func(message goeventbus.Message) bool {
 })
 ```
 
+## Network Bus
+
+A Network bus create a tcp connection between different services. 
+
+NetworkBus is a wrapper of local eventbus.
+
+A simple server/client example is in `examples/networkbus` directory.
+
 
 
 
