@@ -14,7 +14,7 @@ func TestClient(t *testing.T) {
 	var eventbus EventBus = NewEventBus()
 
 	eventbus.Channel("channel").Subscriber().Listen(func(context Context) {
-		assert.Equal(t, "Hello there", context.Result().Data)
+		assert.Equal(t, "Hello there", context.Result().Extract())
 		wg.Done()
 	})
 

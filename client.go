@@ -15,11 +15,6 @@ type tcpClient struct {
 	eventbus EventBus
 }
 
-type Request struct {
-	Channel string  `json:"channel"`
-	Message Message `json:"message"`
-}
-
 func (s *tcpClient) Connect() {
 	var conn net.Conn
 	var err error

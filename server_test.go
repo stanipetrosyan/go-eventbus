@@ -35,7 +35,7 @@ func TestServer(t *testing.T) {
 			return
 		}
 		assert.Equal(t, "my-channel", request.Channel)
-		assert.Equal(t, "Hello there", request.Message.Data)
+		assert.Equal(t, "Hello there", request.Message.Extract())
 		wg.Done()
 
 	}()
