@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"sync"
 )
 
 type Server interface {
@@ -12,6 +13,7 @@ type Server interface {
 }
 
 type tcpServer struct {
+	sync.RWMutex
 	address string
 	clients []net.Conn
 }
@@ -32,12 +34,15 @@ func (s *tcpServer) Listen() (Server, error) {
 			continue
 		}
 
+		s.Lock()
 		s.clients = append(s.clients, conn)
+		s.Unlock()
 	}
 }
 
 func (s *tcpServer) Publish(channel string, message Message) {
 	var encoder *json.Encoder
+	s.Lock()
 	for _, client := range s.clients {
 		encoder = json.NewEncoder(client)
 		err := encoder.Encode(Request{Channel: channel, Message: message})
@@ -46,6 +51,7 @@ func (s *tcpServer) Publish(channel string, message Message) {
 			fmt.Println("Error:", err)
 		}
 	}
+	s.Unlock()
 }
 
 func NewServer(address string) Server {
