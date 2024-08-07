@@ -3,6 +3,7 @@ package goeventbus
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net"
 	"sync"
 )
@@ -24,6 +25,8 @@ func (s *tcpServer) Listen() (Server, error) {
 		fmt.Println("Error:", err)
 		return nil, err
 	}
+
+	slog.Info("Server started", slog.String("host", s.address))
 
 	defer listener.Close()
 

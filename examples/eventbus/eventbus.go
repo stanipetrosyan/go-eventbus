@@ -44,11 +44,12 @@ func main() {
 }
 
 func publishTo(address string, data string) {
-
 	options := goeventbus.NewMessageOptions().SetHeaders(goeventbus.NewHeaders().Add("header", "value"))
 	message := goeventbus.CreateMessage().SetBody(data).SetOptions(options)
+	publisher := eventbus.Channel(address).Publisher()
+
 	for {
-		eventbus.Channel(address).Publisher().Publish(message)
+		publisher.Publish(message)
 		time.Sleep(time.Second)
 	}
 }

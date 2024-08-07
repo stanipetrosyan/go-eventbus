@@ -1,5 +1,7 @@
 package goeventbus
 
+import "log/slog"
+
 type Channel interface {
 	Publisher() Publisher
 	Subscriber() Subscriber
@@ -17,6 +19,7 @@ func (c *defaultChannel) Listen() {
 	for {
 		data, ok := <-c.ch
 		if !ok {
+			slog.Error("Something went wrong during listening on channel")
 			return
 		}
 
@@ -30,6 +33,8 @@ func (c *defaultChannel) Listen() {
 }
 
 func (c *defaultChannel) Publisher() Publisher {
+	slog.Info("Publisher created", slog.String("channel", c.address))
+
 	return NewPublisher(c.ch)
 }
 
@@ -37,12 +42,15 @@ func (c *defaultChannel) Subscriber() Subscriber {
 	ch := make(chan Message)
 	c.chs = append(c.chs, ch)
 
+	slog.Info("Subscriber created", slog.String("channel", c.address))
+
 	return NewSubscriber(ch)
 }
 
 func (c *defaultChannel) Processor(predicate func(message Message) bool) Channel {
 	c.processor = NewProcessorWithPredicate(predicate)
 
+	slog.Info("Processor created", slog.String("channel", c.address))
 	return c
 }
 

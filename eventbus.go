@@ -1,5 +1,7 @@
 package goeventbus
 
+import "log/slog"
+
 type EventBus interface {
 	Channel(adress string) Channel
 }
@@ -13,6 +15,8 @@ func (e *defaultEventBus) Channel(address string) Channel {
 	if !exists {
 		e.channels[address] = NewChannel(address)
 	}
+
+	slog.Info("Channel created", slog.String("name", address))
 	return e.channels[address]
 }
 
