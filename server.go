@@ -2,7 +2,6 @@ package goeventbus
 
 import (
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net"
 	"sync"
@@ -22,7 +21,7 @@ type tcpServer struct {
 func (s *tcpServer) Listen() (Server, error) {
 	listener, err := net.Listen("tcp", s.address)
 	if err != nil {
-		fmt.Println("Error:", err)
+		slog.Error(err.Error())
 		return nil, err
 	}
 
@@ -33,7 +32,7 @@ func (s *tcpServer) Listen() (Server, error) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println("Error:", err)
+			slog.Error(err.Error())
 			continue
 		}
 
@@ -51,7 +50,7 @@ func (s *tcpServer) Publish(channel string, message Message) {
 		err := encoder.Encode(Request{Channel: channel, Message: message})
 
 		if err != nil {
-			fmt.Println("Error:", err)
+			slog.Error(err.Error())
 		}
 	}
 	s.Unlock()

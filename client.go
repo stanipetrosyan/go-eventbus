@@ -2,7 +2,7 @@ package goeventbus
 
 import (
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"net"
 )
 
@@ -31,7 +31,7 @@ func (s *tcpClient) Connect() {
 		err = d.Decode(&msg)
 
 		if err != nil {
-			fmt.Println("Error:", err)
+			slog.Error(err.Error())
 			return
 		}
 
