@@ -35,7 +35,7 @@ func (c *defaultChannel) Listen() {
 func (c *defaultChannel) Publisher() Publisher {
 	slog.Info("Publisher created", slog.String("channel", c.address))
 
-	return NewPublisher(c.ch)
+	return newPublisher(c.ch)
 }
 
 func (c *defaultChannel) Subscriber() Subscriber {
@@ -44,19 +44,19 @@ func (c *defaultChannel) Subscriber() Subscriber {
 
 	slog.Info("Subscriber created", slog.String("channel", c.address))
 
-	return NewSubscriber(ch)
+	return newSubscriber(ch)
 }
 
 func (c *defaultChannel) Processor(predicate func(message Message) bool) Channel {
-	c.processor = NewProcessorWithPredicate(predicate)
+	c.processor = newProcessorWithPredicate(predicate)
 
 	slog.Info("Processor created", slog.String("channel", c.address))
 	return c
 }
 
-func NewChannel(address string) Channel {
+func newChannel(address string) Channel {
 	ch := make(chan Message)
-	channel := defaultChannel{address: address, ch: ch, chs: []chan Message{}, processor: NewProcessor()}
+	channel := defaultChannel{address: address, ch: ch, chs: []chan Message{}, processor: newProcessor()}
 	go channel.Listen()
 
 	return &channel

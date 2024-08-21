@@ -14,7 +14,7 @@ func TestServer(t *testing.T) {
 	var wg sync.WaitGroup
 
 	wg.Add(1)
-	server := NewServer("localhost:8082")
+	server := newServer("localhost:8082")
 	go server.Listen()
 
 	var conn net.Conn

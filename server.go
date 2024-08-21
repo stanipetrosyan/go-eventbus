@@ -56,6 +56,6 @@ func (s *tcpServer) Publish(channel string, message Message) {
 	s.Unlock()
 }
 
-func NewServer(address string) Server {
+func newServer(address string) Server {
 	return &tcpServer{address: address, clients: []net.Conn{}}
 }

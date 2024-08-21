@@ -43,6 +43,6 @@ func (s *tcpClient) Connect() {
 	}
 }
 
-func NewClient(address string, eventbus EventBus) Client {
+func newClient(address string, eventbus EventBus) Client {
 	return &tcpClient{address: address, eventbus: eventbus}
 }

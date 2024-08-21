@@ -8,11 +8,11 @@ type defaultProcessor struct {
 	predicate func(message Message) bool
 }
 
-func NewProcessor() Processor {
+func newProcessor() Processor {
 	return defaultProcessor{func(message Message) bool { return true }}
 }
 
-func NewProcessorWithPredicate(predicate func(message Message) bool) Processor {
+func newProcessorWithPredicate(predicate func(message Message) bool) Processor {
 	return defaultProcessor{predicate: predicate}
 }
 

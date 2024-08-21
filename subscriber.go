@@ -16,11 +16,11 @@ func (s defaultSubscriber) Listen(consumer func(context Context)) {
 				return
 			}
 
-			consumer(NewConsumerContextWithMessage(data))
+			consumer(newConsumerContextWithMessage(data))
 		}
 	}()
 }
 
-func NewSubscriber(ch chan Message) Subscriber {
+func newSubscriber(ch chan Message) Subscriber {
 	return defaultSubscriber{ch: ch}
 }

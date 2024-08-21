@@ -12,6 +12,6 @@ func (c defaultContext) Result() Message {
 	return c.message
 }
 
-func NewConsumerContextWithMessage(message Message) Context {
+func newConsumerContextWithMessage(message Message) Context {
 	return defaultContext{message: message}
 }

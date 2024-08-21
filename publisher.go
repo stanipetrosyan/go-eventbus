@@ -8,7 +8,7 @@ type defaultPublisher struct {
 	ch chan Message
 }
 
-func NewPublisher(ch chan Message) Publisher {
+func newPublisher(ch chan Message) Publisher {
 	return defaultPublisher{ch: ch}
 }
 

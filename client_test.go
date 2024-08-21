@@ -33,7 +33,7 @@ func TestClient(t *testing.T) {
 		}
 	}()
 
-	client := NewClient("localhost:8083", eventbus)
+	client := newClient("localhost:8083", eventbus)
 	go client.Connect()
 
 	wg.Wait()

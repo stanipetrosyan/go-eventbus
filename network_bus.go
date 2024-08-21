@@ -15,9 +15,9 @@ func NewNetworkBus(bus EventBus, address string) NetworkBus {
 }
 
 func (b defaultNetworkBus) Server() Server {
-	return NewServer(b.address)
+	return newServer(b.address)
 }
 
 func (b defaultNetworkBus) Client() Client {
-	return NewClient(b.address, b.localBus)
+	return newClient(b.address, b.localBus)
 }
