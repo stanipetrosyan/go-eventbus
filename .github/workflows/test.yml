@@ -6,18 +6,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.22
+          go-version: 1.23
 
       - name: Build
         run: go build -v ./...
 
       - name: Test
         run: go test -v ./...
-      
+
       - name: Run coverage
         run: go test -race -coverprofile=coverage.txt -covermode=atomic
 
@@ -25,4 +25,3 @@ jobs:
         uses: codecov/codecov-action@v3
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      
