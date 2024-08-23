@@ -5,22 +5,23 @@ type Subscriber interface {
 }
 
 type defaultSubscriber struct {
-	ch chan Message
+	ch      chan Message
+	channel chan packet
 }
 
 func (s defaultSubscriber) Listen(consumer func(context Context)) {
 	go func() {
 		for {
-			data, ok := <-s.ch
+			message, ok := <-s.ch
 			if !ok {
 				return
 			}
 
-			consumer(newConsumerContextWithMessage(data))
+			consumer(newConsumerContextWithMessageAndChannel(message, s.channel))
 		}
 	}()
 }
 
-func newSubscriber(ch chan Message) Subscriber {
-	return defaultSubscriber{ch: ch}
+func newSubscriber(ch chan Message, channel chan packet) Subscriber {
+	return defaultSubscriber{ch: ch, channel: channel}
 }
