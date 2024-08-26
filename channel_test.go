@@ -43,6 +43,27 @@ func TestSubscriberHandler(t *testing.T) {
 	})
 }
 
+func TestRequestHandler(t *testing.T) {
+	var eventBus = NewEventBus()
+	var wg sync.WaitGroup
+
+	t.Run("should a subscriber response to a publisher", func(t *testing.T) {
+		wg.Add(1)
+
+		eventBus.Channel("my-channel").Subscriber().Listen(func(context Context) {
+			assert.Equal(t, "Hi There", context.Result().Extract())
+			context.Reply(CreateMessage().SetBody("Hello there!"))
+		})
+
+		message := CreateMessage().SetBody("Hi There")
+		eventBus.Channel("my-channel").Publisher().Request(message, func(context Context) {
+			assert.Equal(t, "Hello there!", context.Result().Extract())
+			wg.Done()
+		})
+		wg.Wait()
+	})
+}
+
 func TestProcessorHandler(t *testing.T) {
 	var eventBus = NewEventBus()
 	var wg sync.WaitGroup

@@ -2,17 +2,24 @@ package goeventbus
 
 import "log/slog"
 
+type Sender int
+
+const (
+	SUBSCRIBER Sender = iota
+	PUBLISHER
+)
+
 type packet struct {
-	from    string
+	from    Sender
 	message Message
 }
 
 func newSubscriberPacket(message Message) packet {
-	return packet{from: "subscriber", message: message}
+	return packet{from: SUBSCRIBER, message: message}
 }
 
 func newPublisherPacket(message Message) packet {
-	return packet{from: "publisher", message: message}
+	return packet{from: PUBLISHER, message: message}
 }
 
 type Channel interface {
@@ -29,7 +36,7 @@ type defaultChannel struct {
 	processor   Processor
 }
 
-func (c *defaultChannel) Listen() {
+func (c *defaultChannel) listen() {
 	for {
 		packet, ok := <-c.ch
 		if !ok {
@@ -37,18 +44,23 @@ func (c *defaultChannel) Listen() {
 			return
 		}
 
-		if packet.from == "subscriber" {
-			for _, item := range c.publishers {
-				item <- packet.message
+		switch packet.from {
+		case SUBSCRIBER:
+			{
+				for _, item := range c.publishers {
+					item <- packet.message
+				}
+			}
+
+		case PUBLISHER:
+			{
+				if c.processor.forward(packet.message) {
+					for _, item := range c.subscribers {
+						item <- packet.message
+					}
+				}
 			}
 		}
-
-		if c.processor.forward(packet.message) {
-			for _, item := range c.subscribers {
-				item <- packet.message
-			}
-		}
-
 	}
 }
 
@@ -57,7 +69,7 @@ func (c *defaultChannel) Publisher() Publisher {
 	c.publishers = append(c.publishers, ch)
 	slog.Info("Publisher created", slog.String("channel", c.address))
 
-	return newPublisher(c.ch)
+	return newPublisher(c.ch, ch)
 }
 
 func (c *defaultChannel) Subscriber() Subscriber {
@@ -85,7 +97,7 @@ func newChannel(address string) Channel {
 		publishers:  []chan Message{},
 		processor:   newProcessor(),
 	}
-	go channel.Listen()
+	go channel.listen()
 
 	return &channel
 }

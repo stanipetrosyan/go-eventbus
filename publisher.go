@@ -6,28 +6,29 @@ type Publisher interface {
 }
 
 type defaultPublisher struct {
-	ch chan packet
+	ch      chan Message
+	channel chan packet
 }
 
-func newPublisher(ch chan packet) Publisher {
-	return defaultPublisher{ch: ch}
+func newPublisher(channel chan packet, ch chan Message) Publisher {
+	return defaultPublisher{ch: ch, channel: channel}
 }
 
 func (p defaultPublisher) Publish(message Message) {
-	p.ch <- newPublisherPacket(message)
+	p.channel <- newPublisherPacket(message)
 }
 
 func (p defaultPublisher) Request(message Message, consumer func(context Context)) {
-	p.ch <- newPublisherPacket(message)
+	p.channel <- newPublisherPacket(message)
 
 	go func() {
 		for {
-			packet, ok := <-p.ch
+			message, ok := <-p.ch
 			if !ok {
 				return
 			}
 
-			consumer(newConsumerContextWithMessageAndChannel(packet.message, p.ch))
+			consumer(newConsumerContextWithMessageAndChannel(message, p.channel))
 		}
 	}()
 }
