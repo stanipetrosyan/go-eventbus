@@ -28,7 +28,7 @@ func TestClient(t *testing.T) {
 			conn, err := listener.Accept()
 			assert.Nil(t, err)
 
-			msg := Request{Channel: "channel", Message: CreateMessage().SetBody("Hello there")}
+			msg := request{Channel: "channel", Message: CreateMessage().SetBody("Hello there")}
 			json.NewEncoder(conn).Encode(msg)
 		}
 	}()

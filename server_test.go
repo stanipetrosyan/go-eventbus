@@ -27,7 +27,7 @@ func TestServer(t *testing.T) {
 	assert.Nil(t, err)
 
 	go func() {
-		var request Request
+		var request request
 		d := json.NewDecoder(conn)
 		err := d.Decode(&request)
 		if err != nil {

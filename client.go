@@ -26,7 +26,7 @@ func (s *tcpClient) Connect() {
 	defer conn.Close()
 
 	for {
-		var msg Request
+		var msg request
 		d := json.NewDecoder(conn)
 		err = d.Decode(&msg)
 
