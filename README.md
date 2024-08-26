@@ -7,18 +7,20 @@
 
 ## Description
 
-This is a simple implementation of an event bus in golang. Actually support:
-* publish/subscribe messaging.
+This is a simple implementation of an event bus in golang. Actually support follwing pattern:
+
+- [x] publish/subscribe
+- [x] request/response
 
 ## Get Started
 
-To start use eventbus in your project, you can run the following command. 
+To start use eventbus in your project, you can run the following command.
 
 ```
 go get github.com/stanipetrosyan/go-eventbus
 ```
 
-And import 
+And import
 ``` go
 import (
 	goeventbus "github.com/stanipetrosyan/go-eventbus"
@@ -32,7 +34,7 @@ Simple example of publish/subscribe pattern.
 
 ```go
 
-var eventbus = goeventbus.NewEventBus()
+eventbus = goeventbus.NewEventBus()
 
 address := "topic"
 options := goeventbus.NewMessageOptions().AddHeader("header", "value")
@@ -45,9 +47,30 @@ eventbus.Channel(address).Subscriber().Listen(func(dc goeventbus.Context) {
 eventbus.Channel(address).Publisher().Publish(message)
 ```
 
+## Request/Response
+
+Simple example of request/response pattern.
+
+```go
+
+eventbus = goeventbus.NewEventBus()
+
+address := "topic"
+message := goeventbus.CreateMessage().SetBody("Hi Topic")
+
+eventbus.Channel(address).Subscriber().Listen(func(context goeventbus.Context) {
+	fmt.Printf("Message %s\n", context.Result().Extract())
+	context.Reply("Hello from subscriber")
+})
+
+eventbus.Channel(address).Publisher().Request(message, func(context goeventbus.Context) {
+	fmt.Printf("Message %s\n", context.Result().Extract())
+})
+```
+
 ## Message
 
-For publishing, you need to create a Message object using this method. 
+For publishing, you need to create a Message object using this method.
 
 ```go
 message := goeventbus.CreateMessage().SetBody("Hi Topic")
@@ -77,13 +100,8 @@ eventbus.Channel("topic1").Processor(func(message goeventbus.Message) bool {
 
 ## Network Bus
 
-A Network bus create a tcp connection between different services. 
+A Network bus create a tcp connection between different services.
 
 NetworkBus is a wrapper of local eventbus.
 
 A simple server/client example is in `examples/networkbus` directory.
-
-
-
-
-
