@@ -23,6 +23,8 @@ func (s *tcpClient) Connect() {
 		conn, err = net.Dial("tcp", s.address)
 	}
 
+	slog.Info("Connected to server", slog.String("address", conn.LocalAddr().String()))
+
 	defer conn.Close()
 
 	for {

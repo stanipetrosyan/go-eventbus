@@ -36,6 +36,8 @@ func (s *tcpServer) Listen() (Server, error) {
 			continue
 		}
 
+		slog.Info("Client Connected", slog.String("host", conn.LocalAddr().String()))
+
 		s.Lock()
 		s.clients = append(s.clients, conn)
 		s.Unlock()

@@ -6,6 +6,7 @@ import (
 	"net"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -37,11 +38,11 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, "my-channel", request.Channel)
 		assert.Equal(t, "Hello there", request.Message.Extract())
 		wg.Done()
-
 	}()
+
+	time.Sleep(time.Millisecond)
 
 	msg := CreateMessage().SetBody("Hello there")
 	server.Publish("my-channel", msg)
 	wg.Wait()
-
 }
