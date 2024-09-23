@@ -9,22 +9,14 @@ const (
 	PUBLISHER
 )
 
-type packet struct {
-	from    Sender
-	message Message
-}
-
-func newSubscriberPacket(message Message) packet {
-	return packet{from: SUBSCRIBER, message: message}
-}
-
-func newPublisherPacket(message Message) packet {
-	return packet{from: PUBLISHER, message: message}
-}
-
 type Channel interface {
+	// Create a Publisher for the channel. A publisher publish to all subscriber
 	Publisher() Publisher
+
+	// Create a Subscriber for the channel. A subscriber listen all channel messages
 	Subscriber() Subscriber
+
+	// Create a Processor for the channel. A processor forward the message if the predicate returns true.
 	Processor(predicate func(message Message) bool) Channel
 }
 

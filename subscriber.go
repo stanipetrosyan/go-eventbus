@@ -5,7 +5,7 @@ type Subscriber interface {
 }
 
 type defaultSubscriber struct {
-	ch      chan Message
+	ch      <-chan Message
 	channel chan packet
 }
 
@@ -22,6 +22,6 @@ func (s defaultSubscriber) Listen(consumer func(context Context)) {
 	}()
 }
 
-func newSubscriber(ch chan Message, channel chan packet) Subscriber {
+func newSubscriber(ch <-chan Message, channel chan packet) Subscriber {
 	return defaultSubscriber{ch: ch, channel: channel}
 }

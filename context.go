@@ -1,7 +1,9 @@
 package goeventbus
 
 type Context interface {
+	// Returns the message received
 	Result() Message
+	// Respond to the publisher that send a Request
 	Reply(message Message)
 }
 

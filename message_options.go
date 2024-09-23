@@ -4,15 +4,18 @@ type MessageOptions struct {
 	headers Headers
 }
 
+// Set the headers of the message. For create a new headers see: NewHeaders()
 func (op MessageOptions) SetHeaders(headers Headers) MessageOptions {
 	op.headers = headers
 	return op
 }
 
+// Returns headers of message
 func (op MessageOptions) Headers() Headers {
 	return op.headers
 }
 
+// Retuns empty message options
 func NewMessageOptions() MessageOptions {
 	return MessageOptions{
 		headers: Headers{},
@@ -37,6 +40,7 @@ func (h Headers) Contains(key string) bool {
 	return exist
 }
 
+// Returns empty headers
 func NewHeaders() Headers {
 	return Headers{headers: map[string]string{}}
 }
