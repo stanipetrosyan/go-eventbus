@@ -38,6 +38,7 @@ func (m Message) Extract() any {
 	return m.Payload
 }
 
+// Returns headers of the message
 func (m Message) ExtractHeaders() MessageHeaders {
 	return m.Headers
 }

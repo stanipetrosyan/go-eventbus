@@ -37,8 +37,8 @@ Simple example of publish/subscribe pattern.
 eventbus = goeventbus.NewEventBus()
 
 address := "topic"
-options := goeventbus.NewMessageOptions().AddHeader("header", "value")
-message := goeventbus.CreateMessage().SetBody("Hi Topic").SetOptions(options)
+options := goeventbus.NewMessageHeadersBuilder().SetHeader("header", "value").Build()
+message := goeventbus.NewMessageBuilder().SetPayload("Hi Topic").SetHeaders(options).Build()
 
 eventbus.Channel(address).Subscriber().Listen(func(dc goeventbus.Context) {
 	fmt.Printf("Message %s\n", dc.Result().Data)
@@ -56,7 +56,7 @@ Simple example of request/response pattern.
 eventbus = goeventbus.NewEventBus()
 
 address := "topic"
-message := goeventbus.CreateMessage().SetBody("Hi Topic")
+message := goeventbus.NewMessageBuilder().SetPayload("Hi Topic").Build()
 
 eventbus.Channel(address).Subscriber().Listen(func(context goeventbus.Context) {
 	fmt.Printf("Message %s\n", context.Result().Extract())
@@ -73,16 +73,14 @@ eventbus.Channel(address).Publisher().Request(message, func(context goeventbus.C
 For publishing, you need to create a Message object using this method.
 
 ```go
-message := goeventbus.CreateMessage().SetBody("Hi Topic")
+message := goeventbus.NewMessageBuilder().SetPayload("Hi Topic").SetHeaders(options).Build()
 ```
 Each message can have some options:
 
 ```go
 
-options := goeventbus.NewMessageOptions().AddHeader("header", "value")
-message := goeventbus.CreateMessage()
-
-message.SetOptions(options)
+options := goeventbus.NewMessageHeadersBuilder().SetHeader("header", "value").Build()
+message := goeventbus.NewMessageBuilder().setHeaders(options).Build()
 
 eventBus.Channel("address").Publisher().Publish(message)
 ```
