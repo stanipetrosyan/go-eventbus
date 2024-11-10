@@ -1,33 +1,43 @@
 package goeventbus
 
 type Message struct {
-	Data           interface{}
-	MessageOptions MessageOptions
+	Payload interface{}
+	Headers MessageHeaders
 }
 
-// Returns an empty message
-func CreateMessage() Message {
-	return Message{}
+type MessageBuilder interface {
+	SetPayload(payload any) MessageBuilder
+	SetHeaders(headers MessageHeaders) MessageBuilder
+	Build() Message
 }
 
-// Set the body of the message. Paramater can be any type
-func (m Message) SetBody(data any) Message {
-	m.Data = data
-	return m
+type defaultMessageBuilder struct {
+	message Message
 }
 
-// Set the options of the message. For create a new options see: NewMessageOptions()
-func (m Message) SetOptions(options MessageOptions) Message {
-	m.MessageOptions = options
-	return m
+func NewMessageBuilder() MessageBuilder {
+	return &defaultMessageBuilder{message: Message{}}
+}
+
+func (mb *defaultMessageBuilder) SetPayload(payload any) MessageBuilder {
+	mb.message.Payload = payload
+	return mb
+}
+
+func (mb *defaultMessageBuilder) SetHeaders(headers MessageHeaders) MessageBuilder {
+	mb.message.Headers = headers
+	return mb
+}
+
+func (mb *defaultMessageBuilder) Build() Message {
+	return mb.message
 }
 
 // Returns data of the message
 func (m Message) Extract() any {
-	return m.Data
+	return m.Payload
 }
 
-// Returns options of the message
-func (m Message) Options() MessageOptions {
-	return m.MessageOptions
+func (m Message) ExtractHeaders() MessageHeaders {
+	return m.Headers
 }
