@@ -1,11 +1,7 @@
 package goeventbus
 
-type Headers struct {
-	headers map[string]string
-}
-
 type MessageHeaders struct {
-	headers Headers
+	headers map[string]string
 }
 
 type MessageHeadersBuilder interface {
@@ -18,11 +14,11 @@ type defaultMessageHeadersBuilder struct {
 }
 
 func NewMessageHeadersBuilder() MessageHeadersBuilder {
-	return &defaultMessageHeadersBuilder{messageHeaders: MessageHeaders{Headers{headers: map[string]string{}}}}
+	return &defaultMessageHeadersBuilder{messageHeaders: MessageHeaders{headers: map[string]string{}}}
 }
 
 func (hb *defaultMessageHeadersBuilder) SetHeader(key string, value string) MessageHeadersBuilder {
-	hb.messageHeaders.headers.headers[key] = value
+	hb.messageHeaders.headers[key] = value
 	return hb
 }
 
@@ -30,17 +26,11 @@ func (hb *defaultMessageHeadersBuilder) Build() MessageHeaders {
 	return hb.messageHeaders
 }
 
-func NewMessageHeaders() MessageHeaders {
-	return MessageHeaders{
-		headers: Headers{},
-	}
-}
-
 func (h MessageHeaders) Get(key string) string {
-	return h.headers.headers[key]
+	return h.headers[key]
 }
 
 func (h MessageHeaders) Contains(key string) bool {
-	_, exist := h.headers.headers[key]
+	_, exist := h.headers[key]
 	return exist
 }
