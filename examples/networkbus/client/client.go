@@ -19,5 +19,5 @@ func main() {
 }
 
 func printMessage(data goeventbus.Message) {
-	fmt.Printf("Message %s, Headers %s\n", data.Extract(), data.Options().Headers())
+	fmt.Printf("Message %s, Headers %s\n", data.Extract(), data.ExtractHeaders())
 }

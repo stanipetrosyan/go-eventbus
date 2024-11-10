@@ -16,7 +16,7 @@ func main() {
 
 	eventbus.Channel("topic1").Subscriber().Listen(func(context goeventbus.Context) {
 		printMessage(context.Result())
-		message := goeventbus.CreateMessage().SetBody("Hello from subscriber")
+		message := goeventbus.NewMessageBuilder().SetPayload("Hello from subscriber").Build()
 		context.Reply(message)
 	})
 
@@ -26,8 +26,8 @@ func main() {
 }
 
 func requestTo(address, data string) {
-	options := goeventbus.NewMessageOptions().SetHeaders(goeventbus.NewHeaders().Add("header", "value"))
-	message := goeventbus.CreateMessage().SetBody(data).SetOptions(options)
+	options := goeventbus.NewMessageHeadersBuilder().SetHeader("header", "value").Build()
+	message := goeventbus.NewMessageBuilder().SetPayload(data).SetHeaders(options).Build()
 	publisher := eventbus.Channel(address).Publisher()
 
 	for {
@@ -39,5 +39,5 @@ func requestTo(address, data string) {
 }
 
 func printMessage(data goeventbus.Message) {
-	fmt.Printf("Message %s, Headers %s\n", data.Extract(), data.Options().Headers())
+	fmt.Printf("Message %s, Headers %s\n", data.Extract(), data.ExtractHeaders())
 }

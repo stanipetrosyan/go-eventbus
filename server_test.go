@@ -40,7 +40,7 @@ func TestServer(t *testing.T) {
 
 	}()
 
-	msg := CreateMessage().SetBody("Hello there")
+	msg := NewMessageBuilder().SetPayload("Hello there").Build()
 	server.Publish("my-channel", msg)
 	wg.Wait()
 
