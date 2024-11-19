@@ -1,8 +1,8 @@
 package goeventbus
 
 type Message struct {
-	Payload interface{}
-	Headers MessageHeaders
+	payload interface{}
+	headers MessageHeaders
 }
 
 type MessageBuilder interface {
@@ -20,12 +20,12 @@ func NewMessageBuilder() MessageBuilder {
 }
 
 func (mb *defaultMessageBuilder) SetPayload(payload any) MessageBuilder {
-	mb.message.Payload = payload
+	mb.message.payload = payload
 	return mb
 }
 
 func (mb *defaultMessageBuilder) SetHeaders(headers MessageHeaders) MessageBuilder {
-	mb.message.Headers = headers
+	mb.message.headers = headers
 	return mb
 }
 
@@ -35,10 +35,10 @@ func (mb *defaultMessageBuilder) Build() Message {
 
 // Returns data of the message
 func (m Message) Extract() any {
-	return m.Payload
+	return m.payload
 }
 
 // Returns headers of the message
 func (m Message) ExtractHeaders() MessageHeaders {
-	return m.Headers
+	return m.headers
 }

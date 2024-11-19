@@ -1,6 +1,7 @@
 package goeventbus
 
 type request struct {
-	Channel string  `json:"channel"`
-	Message Message `json:"message"`
+	Channel string         `json:"channel"`
+	Payload any            `json:"payload"`
+	Headers MessageHeaders `json:"headers"`
 }

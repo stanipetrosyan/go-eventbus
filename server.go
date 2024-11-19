@@ -49,7 +49,7 @@ func (s *tcpServer) Publish(channel string, message Message) {
 	s.Lock()
 	for _, client := range s.clients {
 		encoder = json.NewEncoder(client)
-		err := encoder.Encode(request{Channel: channel, Message: message})
+		err := encoder.Encode(request{Channel: channel, Payload: message.Extract(), Headers: message.ExtractHeaders()})
 
 		if err != nil {
 			slog.Error(err.Error())

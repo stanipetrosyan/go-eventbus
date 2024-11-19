@@ -39,7 +39,7 @@ func (s *tcpClient) Connect() {
 
 		channel := msg.Channel
 
-		message := msg.Message
+		message := NewMessageBuilder().SetPayload(msg.Payload).SetHeaders(msg.Headers).Build()
 		s.eventbus.Channel(channel).Publisher().Publish(message)
 
 	}
