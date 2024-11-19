@@ -16,7 +16,9 @@ func main() {
 	wg.Add(1)
 
 	eventbus.Channel("topic1").Subscriber().Listen(func(dc goeventbus.Context) {
-		printMessage(dc.Result())
+		if dc.Error() != nil {
+			printMessage(dc.Result())
+		}
 	})
 
 	eventbus.Channel("topic1").Processor(func(message goeventbus.Message) bool {
@@ -24,11 +26,18 @@ func main() {
 	})
 
 	eventbus.Channel("topic2").Subscriber().Listen(func(dc goeventbus.Context) {
-		printMessage(dc.Result())
+		if dc.Error() != nil {
+			printMessage(dc.Result())
+		}
 	})
 
 	eventbus.Channel("topic3").Subscriber().Listen(func(dc goeventbus.Context) {
+		if dc.Error() != nil {
+			panic(dc.Error())
+		}
+
 		printMessage(dc.Result())
+
 	})
 
 	go publishTo("topic1", "Hi topic 1")

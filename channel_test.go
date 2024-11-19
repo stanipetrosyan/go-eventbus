@@ -15,6 +15,7 @@ func TestSubscriberHandler(t *testing.T) {
 		wg.Add(1)
 
 		eventBus.Channel("my-channel").Subscriber().Listen(func(context Context) {
+			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hi There", context.Result().Extract())
 			wg.Done()
 		})
@@ -28,11 +29,13 @@ func TestSubscriberHandler(t *testing.T) {
 		wg.Add(2)
 
 		eventBus.Channel("newaddress").Subscriber().Listen(func(context Context) {
+			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hi There", context.Result().Extract())
 			wg.Done()
 		})
 
 		eventBus.Channel("newaddress").Subscriber().Listen(func(context Context) {
+			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hi There", context.Result().Extract())
 			wg.Done()
 		})
@@ -51,12 +54,14 @@ func TestRequestHandler(t *testing.T) {
 		wg.Add(1)
 
 		eventBus.Channel("my-channel").Subscriber().Listen(func(context Context) {
+			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hi There", context.Result().Extract())
 			context.Reply(NewMessageBuilder().SetPayload("Hello there!").Build())
 		})
 
 		message := NewMessageBuilder().SetPayload("Hi There").Build()
 		eventBus.Channel("my-channel").Publisher().Request(message, func(context Context) {
+			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hello there!", context.Result().Extract())
 			wg.Done()
 		})
@@ -72,6 +77,7 @@ func TestProcessorHandler(t *testing.T) {
 		wg.Add(2)
 
 		eventBus.Channel("my-channel").Subscriber().Listen(func(context Context) {
+			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hi There", context.Result().Extract())
 			wg.Done()
 		})
@@ -93,6 +99,7 @@ func TestMessageOptions(t *testing.T) {
 
 	wg.Add(1)
 	eventBus.Channel("address").Subscriber().Listen(func(context Context) {
+		assert.Nil(t, context.Error())
 		assert.True(t, context.Result().ExtractHeaders().Contains("key"))
 		assert.Equal(t, "value", context.Result().ExtractHeaders().Get("key"))
 		wg.Done()

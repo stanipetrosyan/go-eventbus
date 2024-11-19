@@ -1,5 +1,9 @@
 package goeventbus
 
+import (
+	"errors"
+)
+
 type Subscriber interface {
 	Listen(consumer func(context Context))
 }
@@ -11,13 +15,13 @@ type defaultSubscriber struct {
 
 func (s defaultSubscriber) Listen(consumer func(context Context)) {
 	go func() {
-		for {
-			message, ok := <-s.ch
+		select {
+		case message, ok := <-s.ch:
 			if !ok {
+				newContextWithError(errors.New("channel closed"))
 				return
 			}
-
-			consumer(newConsumerContextWithMessageAndChannel(message, s.channel))
+			consumer(newContextWithMessageAndChannel(message, s.channel))
 		}
 	}()
 }
