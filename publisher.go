@@ -12,8 +12,8 @@ type Publisher interface {
 }
 
 type defaultPublisher struct {
-	listenChannel      <-chan Message
-	sendChannel chan<- packet
+	listenChannel <-chan Message
+	sendChannel   chan<- packet
 }
 
 func newPublisher(channel chan packet, ch <-chan Message) Publisher {
@@ -28,8 +28,8 @@ func (p defaultPublisher) Request(message Message, consumer func(context Context
 	p.sendChannel <- newPublisherPacket(message)
 
 	go func() {
-		select {
-		case message, ok := <-p.listenChannel:
+		for {
+			message, ok := <-p.listenChannel
 			if !ok {
 				newContextWithError(errors.New("channel closed"))
 				return

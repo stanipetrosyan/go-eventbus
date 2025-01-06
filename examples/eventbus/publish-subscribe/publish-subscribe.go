@@ -17,8 +17,10 @@ func main() {
 
 	eventbus.Channel("topic1").Subscriber().Listen(func(dc goeventbus.Context) {
 		if dc.Error() != nil {
-			printMessage(dc.Result())
+			panic(dc.Error())
 		}
+
+		printMessage(dc.Result())
 	})
 
 	eventbus.Channel("topic1").Processor(func(message goeventbus.Message) bool {
@@ -27,8 +29,10 @@ func main() {
 
 	eventbus.Channel("topic2").Subscriber().Listen(func(dc goeventbus.Context) {
 		if dc.Error() != nil {
-			printMessage(dc.Result())
+			panic(dc.Error())
 		}
+
+		printMessage(dc.Result())
 	})
 
 	eventbus.Channel("topic3").Subscriber().Listen(func(dc goeventbus.Context) {
