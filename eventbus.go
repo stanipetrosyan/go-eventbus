@@ -15,9 +15,11 @@ type defaultEventBus struct {
 }
 
 func (e *defaultEventBus) Channel(address string) Channel {
-	channel, _ := e.channels.LoadOrStore(address, newChannel(address))
+	channel, loaded := e.channels.LoadOrStore(address, newChannel(address))
 
-	slog.Info("Channel created", slog.String("name", address))
+	if !loaded {
+		slog.Info("Channel created", slog.String("name", address))
+	}
 	return channel.(Channel)
 }
 
