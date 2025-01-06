@@ -12,29 +12,29 @@ type Publisher interface {
 }
 
 type defaultPublisher struct {
-	ch      <-chan Message
-	channel chan packet
+	listenChannel      <-chan Message
+	sendChannel chan<- packet
 }
 
 func newPublisher(channel chan packet, ch <-chan Message) Publisher {
-	return defaultPublisher{ch: ch, channel: channel}
+	return defaultPublisher{listenChannel: ch, sendChannel: channel}
 }
 
 func (p defaultPublisher) Publish(message Message) {
-	p.channel <- newPublisherPacket(message)
+	p.sendChannel <- newPublisherPacket(message)
 }
 
 func (p defaultPublisher) Request(message Message, consumer func(context Context)) {
-	p.channel <- newPublisherPacket(message)
+	p.sendChannel <- newPublisherPacket(message)
 
 	go func() {
 		select {
-		case message, ok := <-p.ch:
+		case message, ok := <-p.listenChannel:
 			if !ok {
 				newContextWithError(errors.New("channel closed"))
 				return
 			}
-			consumer(newContextWithMessageAndChannel(message, p.channel))
+			consumer(newContextWithMessageAndChannel(message, p.sendChannel))
 		}
 	}()
 }

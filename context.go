@@ -11,7 +11,7 @@ type Context interface {
 
 type defaultContext struct {
 	message Message
-	ch      chan packet
+	ch      chan<- packet
 	err     error
 }
 
@@ -31,6 +31,6 @@ func newContextWithError(err error) Context {
 	return defaultContext{err: err}
 }
 
-func newContextWithMessageAndChannel(message Message, ch chan packet) Context {
+func newContextWithMessageAndChannel(message Message, ch chan<- packet) Context {
 	return defaultContext{message: message, ch: ch, err: nil}
 }

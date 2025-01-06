@@ -9,23 +9,23 @@ type Subscriber interface {
 }
 
 type defaultSubscriber struct {
-	ch      <-chan Message
-	channel chan packet
+	listenChannel      <-chan Message
+	sendChannel chan<- packet
 }
 
 func (s defaultSubscriber) Listen(consumer func(context Context)) {
 	go func() {
 		select {
-		case message, ok := <-s.ch:
+		case message, ok := <-s.listenChannel:
 			if !ok {
 				newContextWithError(errors.New("channel closed"))
 				return
 			}
-			consumer(newContextWithMessageAndChannel(message, s.channel))
+			consumer(newContextWithMessageAndChannel(message, s.sendChannel))
 		}
 	}()
 }
 
 func newSubscriber(ch <-chan Message, channel chan packet) Subscriber {
-	return defaultSubscriber{ch: ch, channel: channel}
+	return defaultSubscriber{listenChannel: ch, sendChannel: channel}
 }
