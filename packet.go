@@ -12,3 +12,7 @@ func newSubscriberPacket(message Message) packet {
 func newPublisherPacket(message Message) packet {
 	return packet{from: PUBLISHER, message: message}
 }
+
+func newProcessorPacket(message Message) packet {
+	return packet{from: PROCESSOR, message: message}
+}

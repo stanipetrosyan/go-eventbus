@@ -23,8 +23,10 @@ func main() {
 		printMessage(dc.Result())
 	})
 
-	eventbus.Channel("topic1").Processor(func(message goeventbus.Message) bool {
-		return message.ExtractHeaders().Contains("header")
+	eventbus.Channel("topic1").Processor().Listen(func(context goeventbus.Context) {
+		if context.Result().ExtractHeaders().Contains("header") {
+			context.Next()
+		}
 	})
 
 	eventbus.Channel("topic2").Subscriber().Listen(func(dc goeventbus.Context) {

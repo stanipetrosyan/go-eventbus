@@ -7,6 +7,7 @@ type Sender int
 const (
 	SUBSCRIBER Sender = iota
 	PUBLISHER
+	PROCESSOR
 )
 
 type Channel interface {
@@ -17,7 +18,7 @@ type Channel interface {
 	Subscriber() Subscriber
 
 	// Create a Processor for the channel. A processor forward the message if the predicate returns true.
-	Processor(predicate func(message Message) bool) Channel
+	Processor() Processor
 }
 
 type defaultChannel struct {
@@ -25,7 +26,7 @@ type defaultChannel struct {
 	ch          chan packet
 	subscribers []chan Message
 	publishers  []chan Message
-	processor   Processor
+	processor   chan Message
 }
 
 func (c *defaultChannel) listen() {
@@ -46,13 +47,23 @@ func (c *defaultChannel) listen() {
 
 		case PUBLISHER:
 			{
-				if c.processor.forward(packet.message) {
+				if c.processor != nil {
+					c.processor <- packet.message
+				} else {
 					for _, item := range c.subscribers {
 						item <- packet.message
 					}
 				}
+
+			}
+		case PROCESSOR:
+			{
+				for _, item := range c.subscribers {
+					item <- packet.message
+				}
 			}
 		}
+
 	}
 }
 
@@ -73,11 +84,13 @@ func (c *defaultChannel) Subscriber() Subscriber {
 	return newSubscriber(ch, c.ch)
 }
 
-func (c *defaultChannel) Processor(predicate func(message Message) bool) Channel {
-	c.processor = newProcessorWithPredicate(predicate)
+func (c *defaultChannel) Processor() Processor {
+	ch := make(chan Message)
+	processor := newProcessor(ch, c.ch)
 
+	c.processor = ch
 	slog.Info("Processor created", slog.String("channel", c.address))
-	return c
+	return processor
 }
 
 func newChannel(address string) Channel {
@@ -87,7 +100,7 @@ func newChannel(address string) Channel {
 		ch:          ch,
 		subscribers: []chan Message{},
 		publishers:  []chan Message{},
-		processor:   newProcessor(),
+		processor:   nil,
 	}
 	go channel.listen()
 

@@ -7,6 +7,8 @@ type Context interface {
 	Reply(message Message)
 	// Returns error
 	Error() error
+	//
+	Next()
 }
 
 type defaultContext struct {
@@ -25,6 +27,10 @@ func (c defaultContext) Reply(message Message) {
 
 func (c defaultContext) Error() error {
 	return c.err
+}
+
+func (c defaultContext) Next() {
+	c.ch <- newProcessorPacket(c.message)
 }
 
 func newContextWithError(err error) Context {

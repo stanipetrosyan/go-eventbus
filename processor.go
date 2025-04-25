@@ -1,21 +1,29 @@
 package goeventbus
 
+import "errors"
+
 type Processor interface {
-	forward(message Message) bool
+	Listen(consumer func(context Context))
 }
 
 type defaultProcessor struct {
-	predicate func(message Message) bool
+	listenChannel <-chan Message
+	sendChannel   chan<- packet
 }
 
-func newProcessor() Processor {
-	return defaultProcessor{func(message Message) bool { return true }}
+func newProcessor(ch <-chan Message, channel chan packet) Processor {
+	return defaultProcessor{listenChannel: ch, sendChannel: channel}
 }
 
-func newProcessorWithPredicate(predicate func(message Message) bool) Processor {
-	return defaultProcessor{predicate: predicate}
-}
-
-func (p defaultProcessor) forward(message Message) bool {
-	return p.predicate(message)
+func (p defaultProcessor) Listen(consumer func(context Context)) {
+	go func() {
+		for {
+			message, ok := <-p.listenChannel
+			if !ok {
+				newContextWithError(errors.New("channel closed"))
+				return
+			}
+			consumer(newContextWithMessageAndChannel(message, p.sendChannel))
+		}
+	}()
 }

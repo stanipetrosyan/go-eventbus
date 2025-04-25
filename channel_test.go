@@ -82,9 +82,11 @@ func TestProcessorHandler(t *testing.T) {
 			wg.Done()
 		})
 
-		eventBus.Channel("my-channel").Processor(func(message Message) bool {
-			wg.Done()
-			return message.Extract() == "Hi There"
+		eventBus.Channel("my-channel").Processor().Listen(func(context Context) {
+			if context.Result().Extract() == "Hi There" {
+				wg.Done()
+				context.Next()
+			}
 		})
 
 		message := NewMessageBuilder().SetPayload("Hi There").Build()
