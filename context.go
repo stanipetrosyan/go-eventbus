@@ -7,7 +7,7 @@ type Context interface {
 	Reply(message Message)
 	// Returns error
 	Error() error
-	//
+	// Forward message to subscribers
 	Next()
 }
 

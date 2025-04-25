@@ -87,12 +87,15 @@ eventBus.Channel("address").Publisher().Publish(message)
 
 ## Processor
 
-A processor works like a middleware, in fact forwards messages only if the predicate is satisfied. The method accepts a function with message and return must return a boolean.
+A processor works like a middleware, in fact forwards messages only if context Next method is called. The entity works as Subscriber: Listen method accept a callback with context.
+
+The processor intercept message from publisher to subscribers on a specific channel.
 
 ```go
-
-eventbus.Channel("topic1").Processor(func(message goeventbus.Message) bool {
-	return message.Options.Headers().Contains("header")
+eventbus.Channel("topic1").Processor().Listen(func(context goeventbus.Context) {
+	if context.Result().ExtractHeaders().Contains("header") {
+		context.Next()
+	}
 })
 ```
 
