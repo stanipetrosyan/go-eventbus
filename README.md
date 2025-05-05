@@ -99,6 +99,18 @@ eventbus.Channel("topic1").Processor().Listen(func(context goeventbus.Context) {
 })
 ```
 
+Inside processor is possible change message to forward using `Map` method: 
+
+```go
+eventbus.Channel("topic1").Processor().Listen(func(context goeventbus.Context) {
+	if context.Result().ExtractHeaders().Contains("header") {
+		newMessage := NewMessageBuilder().SetPayload("new message").Build()
+
+		context.Map(newMessage).Next()
+	}
+})
+```
+
 ## Network Bus
 
 A Network bus create a tcp connection between different services.
