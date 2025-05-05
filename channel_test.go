@@ -93,6 +93,29 @@ func TestProcessorHandler(t *testing.T) {
 		eventBus.Channel("my-channel").Publisher().Publish(message)
 		wg.Wait()
 	})
+
+	t.Run("should re map message in processor", func(t *testing.T) {
+		wg.Add(2)
+
+		eventBus.Channel("my-channel").Subscriber().Listen(func(context Context) {
+			assert.Nil(t, context.Error())
+			assert.Equal(t, "Hellooo", context.Result().Extract())
+			wg.Done()
+		})
+
+		eventBus.Channel("my-channel").Processor().Listen(func(context Context) {
+			if context.Result().Extract() == "Hi There" {
+				wg.Done()
+				newMessage := NewMessageBuilder().SetPayload("Hellooo").Build()
+
+				context.Map(newMessage).Next()
+			}
+		})
+
+		message := NewMessageBuilder().SetPayload("Hi There").Build()
+		eventBus.Channel("my-channel").Publisher().Publish(message)
+		wg.Wait()
+	})
 }
 
 func TestMessageOptions(t *testing.T) {

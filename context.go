@@ -9,6 +9,8 @@ type Context interface {
 	Error() error
 	// Forward message to subscribers
 	Next()
+	// Map context message and return context with new message
+	Map(Message Message) Context
 }
 
 type defaultContext struct {
@@ -31,6 +33,11 @@ func (c defaultContext) Error() error {
 
 func (c defaultContext) Next() {
 	c.ch <- newProcessorPacket(c.message)
+}
+
+func (c defaultContext) Map(message Message) Context {
+	c.message = message
+	return c
 }
 
 func newContextWithError(err error) Context {
