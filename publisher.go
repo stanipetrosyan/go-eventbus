@@ -28,13 +28,12 @@ func (p defaultPublisher) Request(message Message, consumer func(context Context
 	p.sendChannel <- newPublisherPacket(message)
 
 	go func() {
-		for {
-			message, ok := <-p.listenChannel
-			if !ok {
-				newContextWithError(errors.New("channel closed"))
-				return
-			}
-			consumer(newContextWithMessageAndChannel(message, p.sendChannel))
+		// Only wait for the first response, then exit to prevent goroutine leak
+		message, ok := <-p.listenChannel
+		if !ok {
+			consumer(newContextWithError(errors.New("channel closed")))
+			return
 		}
+		consumer(newContextWithMessageAndChannel(message, p.sendChannel))
 	}()
 }

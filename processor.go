@@ -20,7 +20,7 @@ func (p defaultProcessor) Listen(consumer func(context Context)) {
 		for {
 			message, ok := <-p.listenChannel
 			if !ok {
-				newContextWithError(errors.New("channel closed"))
+				consumer(newContextWithError(errors.New("channel closed")))
 				return
 			}
 			consumer(newContextWithMessageAndChannel(message, p.sendChannel))

@@ -8,59 +8,59 @@ import (
 )
 
 func TestSubscriberHandler(t *testing.T) {
-	var eventBus = NewEventBus()
-	var wg sync.WaitGroup
-
 	t.Run("should handle a message", func(t *testing.T) {
+		eventBus := NewEventBus()
+		var wg sync.WaitGroup
 		wg.Add(1)
 
-		eventBus.Channel("my-channel").Subscriber().Listen(func(context Context) {
+		eventBus.Channel("subscriber-channel-1").Subscriber().Listen(func(context Context) {
 			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hi There", context.Result().Extract())
 			wg.Done()
 		})
 
 		message := NewMessageBuilder().SetPayload("Hi There").Build()
-		eventBus.Channel("my-channel").Publisher().Publish(message)
+		eventBus.Channel("subscriber-channel-1").Publisher().Publish(message)
 		wg.Wait()
 	})
 
 	t.Run("should handle message with many subscribers", func(t *testing.T) {
+		eventBus := NewEventBus()
+		var wg sync.WaitGroup
 		wg.Add(2)
 
-		eventBus.Channel("newaddress").Subscriber().Listen(func(context Context) {
+		eventBus.Channel("subscriber-channel-2").Subscriber().Listen(func(context Context) {
 			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hi There", context.Result().Extract())
 			wg.Done()
 		})
 
-		eventBus.Channel("newaddress").Subscriber().Listen(func(context Context) {
+		eventBus.Channel("subscriber-channel-2").Subscriber().Listen(func(context Context) {
 			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hi There", context.Result().Extract())
 			wg.Done()
 		})
 
 		message := NewMessageBuilder().SetPayload("Hi There").Build()
-		eventBus.Channel("newaddress").Publisher().Publish(message)
+		eventBus.Channel("subscriber-channel-2").Publisher().Publish(message)
 		wg.Wait()
 	})
 }
 
 func TestRequestHandler(t *testing.T) {
-	var eventBus = NewEventBus()
-	var wg sync.WaitGroup
-
 	t.Run("should a subscriber response to a publisher", func(t *testing.T) {
+		eventBus := NewEventBus()
+		var wg sync.WaitGroup
 		wg.Add(1)
 
-		eventBus.Channel("my-channel").Subscriber().Listen(func(context Context) {
+		eventBus.Channel("request-channel-1").Subscriber().Listen(func(context Context) {
 			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hi There", context.Result().Extract())
 			context.Reply(NewMessageBuilder().SetPayload("Hello there!").Build())
 		})
 
 		message := NewMessageBuilder().SetPayload("Hi There").Build()
-		eventBus.Channel("my-channel").Publisher().Request(message, func(context Context) {
+		eventBus.Channel("request-channel-1").Publisher().Request(message, func(context Context) {
 			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hello there!", context.Result().Extract())
 			wg.Done()
@@ -70,19 +70,18 @@ func TestRequestHandler(t *testing.T) {
 }
 
 func TestProcessorHandler(t *testing.T) {
-	var eventBus = NewEventBus()
-	var wg sync.WaitGroup
-
 	t.Run("should pass processor", func(t *testing.T) {
+		eventBus := NewEventBus()
+		var wg sync.WaitGroup
 		wg.Add(2)
 
-		eventBus.Channel("my-channel").Subscriber().Listen(func(context Context) {
+		eventBus.Channel("processor-channel-1").Subscriber().Listen(func(context Context) {
 			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hi There", context.Result().Extract())
 			wg.Done()
 		})
 
-		eventBus.Channel("my-channel").Processor().Listen(func(context Context) {
+		eventBus.Channel("processor-channel-1").Processor().Listen(func(context Context) {
 			if context.Result().Extract() == "Hi There" {
 				wg.Done()
 				context.Next()
@@ -90,20 +89,22 @@ func TestProcessorHandler(t *testing.T) {
 		})
 
 		message := NewMessageBuilder().SetPayload("Hi There").Build()
-		eventBus.Channel("my-channel").Publisher().Publish(message)
+		eventBus.Channel("processor-channel-1").Publisher().Publish(message)
 		wg.Wait()
 	})
 
 	t.Run("should re map message in processor", func(t *testing.T) {
+		eventBus := NewEventBus()
+		var wg sync.WaitGroup
 		wg.Add(2)
 
-		eventBus.Channel("my-channel").Subscriber().Listen(func(context Context) {
+		eventBus.Channel("processor-channel-2").Subscriber().Listen(func(context Context) {
 			assert.Nil(t, context.Error())
 			assert.Equal(t, "Hellooo", context.Result().Extract())
 			wg.Done()
 		})
 
-		eventBus.Channel("my-channel").Processor().Listen(func(context Context) {
+		eventBus.Channel("processor-channel-2").Processor().Listen(func(context Context) {
 			if context.Result().Extract() == "Hi There" {
 				wg.Done()
 				newMessage := NewMessageBuilder().SetPayload("Hellooo").Build()
@@ -113,7 +114,7 @@ func TestProcessorHandler(t *testing.T) {
 		})
 
 		message := NewMessageBuilder().SetPayload("Hi There").Build()
-		eventBus.Channel("my-channel").Publisher().Publish(message)
+		eventBus.Channel("processor-channel-2").Publisher().Publish(message)
 		wg.Wait()
 	})
 }

@@ -18,7 +18,7 @@ func (s defaultSubscriber) Listen(consumer func(context Context)) {
 		for {
 			message, ok := <-s.listenChannel
 			if !ok {
-				newContextWithError(errors.New("channel closed"))
+				consumer(newContextWithError(errors.New("channel closed")))
 				return
 			}
 			consumer(newContextWithMessageAndChannel(message, s.sendChannel))

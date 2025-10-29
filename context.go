@@ -19,31 +19,31 @@ type defaultContext struct {
 	err     error
 }
 
-func (c defaultContext) Result() Message {
+func (c *defaultContext) Result() Message {
 	return c.message
 }
 
-func (c defaultContext) Reply(message Message) {
+func (c *defaultContext) Reply(message Message) {
 	c.ch <- newSubscriberPacket(message)
 }
 
-func (c defaultContext) Error() error {
+func (c *defaultContext) Error() error {
 	return c.err
 }
 
-func (c defaultContext) Next() {
+func (c *defaultContext) Next() {
 	c.ch <- newProcessorPacket(c.message)
 }
 
-func (c defaultContext) Map(message Message) Context {
+func (c *defaultContext) Map(message Message) Context {
 	c.message = message
 	return c
 }
 
 func newContextWithError(err error) Context {
-	return defaultContext{err: err}
+	return &defaultContext{err: err}
 }
 
 func newContextWithMessageAndChannel(message Message, ch chan<- packet) Context {
-	return defaultContext{message: message, ch: ch, err: nil}
+	return &defaultContext{message: message, ch: ch, err: nil}
 }

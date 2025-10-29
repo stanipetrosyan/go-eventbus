@@ -1,6 +1,9 @@
 package goeventbus
 
-import "log/slog"
+import (
+	"log/slog"
+	"sync"
+)
 
 type Sender int
 
@@ -22,6 +25,7 @@ type Channel interface {
 }
 
 type defaultChannel struct {
+	mu          sync.RWMutex
 	address     string
 	ch          chan packet
 	subscribers []chan Message
@@ -40,26 +44,48 @@ func (c *defaultChannel) listen() {
 		switch packet.from {
 		case SUBSCRIBER:
 			{
-				for _, item := range c.publishers {
-					item <- packet.message
+				c.mu.RLock()
+				publishers := make([]chan Message, len(c.publishers))
+				copy(publishers, c.publishers)
+				c.mu.RUnlock()
+				// Non-blocking broadcast using goroutines
+				for _, item := range publishers {
+					go func(ch chan Message) {
+						ch <- packet.message
+					}(item)
 				}
 			}
 
 		case PUBLISHER:
 			{
-				if c.processor != nil {
-					c.processor <- packet.message
+				c.mu.RLock()
+				processor := c.processor
+				subscribers := make([]chan Message, len(c.subscribers))
+				copy(subscribers, c.subscribers)
+				c.mu.RUnlock()
+				if processor != nil {
+					processor <- packet.message
 				} else {
-					for _, item := range c.subscribers {
-						item <- packet.message
+					// Non-blocking broadcast using goroutines
+					for _, item := range subscribers {
+						go func(ch chan Message) {
+							ch <- packet.message
+						}(item)
 					}
 				}
 
 			}
 		case PROCESSOR:
 			{
-				for _, item := range c.subscribers {
-					item <- packet.message
+				c.mu.RLock()
+				subscribers := make([]chan Message, len(c.subscribers))
+				copy(subscribers, c.subscribers)
+				c.mu.RUnlock()
+				// Non-blocking broadcast using goroutines
+				for _, item := range subscribers {
+					go func(ch chan Message) {
+						ch <- packet.message
+					}(item)
 				}
 			}
 		}
@@ -69,7 +95,9 @@ func (c *defaultChannel) listen() {
 
 func (c *defaultChannel) Publisher() Publisher {
 	ch := make(chan Message)
+	c.mu.Lock()
 	c.publishers = append(c.publishers, ch)
+	c.mu.Unlock()
 	slog.Info("Publisher created", slog.String("channel", c.address))
 
 	return newPublisher(c.ch, ch)
@@ -77,7 +105,9 @@ func (c *defaultChannel) Publisher() Publisher {
 
 func (c *defaultChannel) Subscriber() Subscriber {
 	ch := make(chan Message)
+	c.mu.Lock()
 	c.subscribers = append(c.subscribers, ch)
+	c.mu.Unlock()
 
 	slog.Info("Subscriber created", slog.String("channel", c.address))
 
@@ -88,7 +118,9 @@ func (c *defaultChannel) Processor() Processor {
 	ch := make(chan Message)
 	processor := newProcessor(ch, c.ch)
 
+	c.mu.Lock()
 	c.processor = ch
+	c.mu.Unlock()
 	slog.Info("Processor created", slog.String("channel", c.address))
 	return processor
 }
